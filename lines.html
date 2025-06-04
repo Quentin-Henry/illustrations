@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Line Segment Grid</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', monospace;
+            background: #111;
+            color: white;
+            overflow: hidden;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            min-width: 250px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #ccc;
+        }
+        
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .control-group input[type="color"] {
+            width: 50px;
+            height: 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            font-size: 11px;
+            color: #888;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .preset-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        
+        .preset-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+    </style>
+</head>
+<body>
+    <div class="toggle-btn" onclick="toggleControls()">Toggle Controls</div>
+    
+    <div class="controls" id="controls">
+        <h3 style="margin-top: 0; color: #fff;">Line Grid Controls</h3>
+        
+        <div class="control-group">
+            <label>Grid Size: <span class="value-display" id="gridSizeValue">10</span></label>
+            <input type="range" id="gridSize" min="3" max="30" value="10" step="1">
+        </div>
+        
+        <div class="control-group">
+            <label>Animation Speed: <span class="value-display" id="speedValue">1.0</span></label>
+            <input type="range" id="speed" min="0" max="3" value="1" step="0.1">
+        </div>
+        
+        <div class="control-group">
+            <label>Line Thickness: <span class="value-display" id="thicknessValue">1.5</span></label>
+            <input type="range" id="thickness" min="0.5" max="5" value="1.5" step="0.1">
+        </div>
+        
+        <div class="control-group">
+            <label>Rotation Intensity: <span class="value-display" id="rotationValue">1.0</span></label>
+            <input type="range" id="rotation" min="0" max="3" value="1" step="0.1">
+        </div>
+        
+        <div class="control-group">
+            <label>Size Variation: <span class="value-display" id="sizeVarValue">1.0</span></label>
+            <input type="range" id="sizeVar" min="0" max="2" value="1" step="0.1">
+        </div>
+        
+        <div class="control-group">
+            <label>Wave Frequency: <span class="value-display" id="freqValue">0.25</span></label>
+            <input type="range" id="frequency" min="0.1" max="2" value="0.25" step="0.05">
+        </div>
+        
+        <div class="control-group">
+            <label>Margin: <span class="value-display" id="marginValue">10%</span></label>
+            <input type="range" id="margin" min="5" max="25" value="10" step="1">
+        </div>
+        
+        <div class="control-group">
+            <label>Background Color:</label>
+            <input type="color" id="bgColor" value="#000000">
+        </div>
+        
+        <div class="control-group">
+            <label>Line Color:</label>
+            <input type="color" id="lineColor" value="#ffffff">
+        </div>
+        
+        <div class="control-group">
+            <label>
+                <input type="checkbox" id="colorShift"> Rainbow Mode
+            </label>
+        </div>
+        
+        <div class="control-group">
+            <label>
+                <input type="checkbox" id="pauseAnimation"> Pause Animation
+            </label>
+        </div>
+        
+        <div class="preset-buttons">
+            <button class="preset-btn" onclick="loadPreset('minimal')">Minimal</button>
+            <button class="preset-btn" onclick="loadPreset('chaos')">Chaos</button>
+            <button class="preset-btn" onclick="loadPreset('waves')">Waves</button>
+            <button class="preset-btn" onclick="loadPreset('static')">Static</button>
+        </div>
+    </div>
+
+    <script>
+        let params = {
+            gridSize: 10,
+            speed: 1.0,
+            thickness: 1.5,
+            rotation: 1.0,
+            sizeVar: 1.0,
+            frequency: 0.25,
+            margin: 10,
+            bgColor: [0, 0, 0],
+            lineColor: [255, 255, 255],
+            colorShift: false,
+            pauseAnimation: false
+        };
+        
+        let startTime = 0;
+        let pausedTime = 0;
+        
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            startTime = millis();
+            setupControls();
+        }
+        
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+        
+        function draw() {
+            const dim = Math.max(width, height);
+            
+            // Background
+            background(params.bgColor[0], params.bgColor[1], params.bgColor[2]);
+            
+            // Line properties
+            noFill();
+            strokeCap(ROUND);
+            strokeWeight(dim * (params.thickness / 100));
+            
+            const gridSize = params.gridSize;
+            const margin = dim * (params.margin / 100);
+            const innerWidth = width - margin * 2;
+            const innerHeight = height - margin * 2;
+            const cellSizeX = innerWidth / gridSize;
+            const cellSizeY = innerHeight / gridSize;
+            const cellSize = Math.min(cellSizeX, cellSizeY);
+            
+            const currentTime = params.pauseAnimation ? pausedTime : (millis() - startTime) / 1000 * params.speed;
+            if (params.pauseAnimation && pausedTime === 0) {
+                pausedTime = (millis() - startTime) / 1000 * params.speed;
+            }
+            if (!params.pauseAnimation) {
+                pausedTime = 0;
+            }
+            
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const u = gridSize <= 1 ? 0.5 : x / (gridSize - 1);
+                    const v = gridSize <= 1 ? 0.5 : y / (gridSize - 1);
+                    
+                    const px = lerp(margin, width - margin, u);
+                    const py = lerp(margin, height - margin, v);
+                    
+                    const rotation = sin(currentTime + u * PI * params.frequency) * PI * params.rotation;
+                    const lineSize = (sin(currentTime + v * PI * params.frequency) * 0.5 + 0.5) * params.sizeVar;
+                    
+                    // Color handling
+                    if (params.colorShift) {
+                        const hue = (currentTime * 50 + x * 20 + y * 20) % 360;
+                        colorMode(HSB);
+                        stroke(hue, 70, 90);
+                        colorMode(RGB);
+                    } else {
+                        stroke(params.lineColor[0], params.lineColor[1], params.lineColor[2]);
+                    }
+                    
+                    segment(px, py, cellSize * lineSize, rotation);
+                }
+            }
+        }
+        
+        function segment(x, y, length, angle = 0) {
+            const r = length / 2;
+            const u = Math.cos(angle);
+            const v = Math.sin(angle);
+            line(x - u * r, y - v * r, x + u * r, y + v * r);
+        }
+        
+        function setupControls() {
+            const controls = {
+                gridSize: document.getElementById('gridSize'),
+                speed: document.getElementById('speed'),
+                thickness: document.getElementById('thickness'),
+                rotation: document.getElementById('rotation'),
+                sizeVar: document.getElementById('sizeVar'),
+                frequency: document.getElementById('frequency'),
+                margin: document.getElementById('margin'),
+                bgColor: document.getElementById('bgColor'),
+                lineColor: document.getElementById('lineColor'),
+                colorShift: document.getElementById('colorShift'),
+                pauseAnimation: document.getElementById('pauseAnimation')
+            };
+            
+            // Add event listeners
+            Object.keys(controls).forEach(key => {
+                const element = controls[key];
+                if (element.type === 'range') {
+                    element.addEventListener('input', () => updateParam(key, parseFloat(element.value)));
+                } else if (element.type === 'color') {
+                    element.addEventListener('input', () => updateColorParam(key, element.value));
+                } else if (element.type === 'checkbox') {
+                    element.addEventListener('change', () => updateParam(key, element.checked));
+                }
+            });
+            
+            updateAllDisplays();
+        }
+        
+        function updateParam(key, value) {
+            params[key] = value;
+            updateDisplay(key);
+        }
+        
+        function updateColorParam(key, hexValue) {
+            const r = parseInt(hexValue.substr(1, 2), 16);
+            const g = parseInt(hexValue.substr(3, 2), 16);
+            const b = parseInt(hexValue.substr(5, 2), 16);
+            params[key] = [r, g, b];
+        }
+        
+        function updateDisplay(key) {
+            const displays = {
+                gridSize: 'gridSizeValue',
+                speed: 'speedValue',
+                thickness: 'thicknessValue',
+                rotation: 'rotationValue',
+                sizeVar: 'sizeVarValue',
+                frequency: 'freqValue',
+                margin: 'marginValue'
+            };
+            
+            if (displays[key]) {
+                const element = document.getElementById(displays[key]);
+                if (element) {
+                    let value = params[key];
+                    if (key === 'margin') value += '%';
+                    element.textContent = value;
+                }
+            }
+        }
+        
+        function updateAllDisplays() {
+            Object.keys(params).forEach(key => updateDisplay(key));
+        }
+        
+        function loadPreset(presetName) {
+            const presets = {
+                minimal: {
+                    gridSize: 5,
+                    speed: 0.5,
+                    thickness: 1.0,
+                    rotation: 0.5,
+                    sizeVar: 0.3,
+                    frequency: 0.1,
+                    margin: 20,
+                    colorShift: false,
+                    pauseAnimation: false
+                },
+                chaos: {
+                    gridSize: 20,
+                    speed: 2.5,
+                    thickness: 2.0,
+                    rotation: 2.5,
+                    sizeVar: 1.8,
+                    frequency: 1.5,
+                    margin: 5,
+                    colorShift: true,
+                    pauseAnimation: false
+                },
+                waves: {
+                    gridSize: 15,
+                    speed: 0.8,
+                    thickness: 1.8,
+                    rotation: 1.2,
+                    sizeVar: 1.5,
+                    frequency: 0.15,
+                    margin: 15,
+                    colorShift: false,
+                    pauseAnimation: false
+                },
+                static: {
+                    gridSize: 12,
+                    speed: 0,
+                    thickness: 1.2,
+                    rotation: 1.0,
+                    sizeVar: 0.8,
+                    frequency: 0.3,
+                    margin: 12,
+                    colorShift: false,
+                    pauseAnimation: true
+                }
+            };
+            
+            if (presets[presetName]) {
+                Object.assign(params, presets[presetName]);
+                updateControlsFromParams();
+                updateAllDisplays();
+            }
+        }
+        
+        function updateControlsFromParams() {
+            document.getElementById('gridSize').value = params.gridSize;
+            document.getElementById('speed').value = params.speed;
+            document.getElementById('thickness').value = params.thickness;
+            document.getElementById('rotation').value = params.rotation;
+            document.getElementById('sizeVar').value = params.sizeVar;
+            document.getElementById('frequency').value = params.frequency;
+            document.getElementById('margin').value = params.margin;
+            document.getElementById('colorShift').checked = params.colorShift;
+            document.getElementById('pauseAnimation').checked = params.pauseAnimation;
+        }
+        
+        function toggleControls() {
+            const controls = document.getElementById('controls');
+            controls.style.display = controls.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Keyboard shortcuts
+        function keyPressed() {
+            if (key === ' ') {
+                params.pauseAnimation = !params.pauseAnimation;
+                document.getElementById('pauseAnimation').checked = params.pauseAnimation;
+            } else if (key === 'h' || key === 'H') {
+                toggleControls();
+            } else if (key === 'r' || key === 'R') {
+                startTime = millis();
+                pausedTime = 0;
+            }
+        }
+    </script>
+</body>
+</html>
