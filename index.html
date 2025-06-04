@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Emergent Processing Visualization</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 340px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #cccccc;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #00ffff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .control-group input[type="color"] {
+            width: 100%;
+            height: 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .control-group select {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 5px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: rgba(0, 255, 255, 0.3);
+        }
+        
+        button.active {
+            background: #00ffff;
+            color: #000;
+        }
+        
+        .value-display {
+            font-size: 11px;
+            color: #00ffff;
+            text-align: right;
+        }
+        
+        #stats {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        input[type="checkbox"] {
+            transform: scale(1.2);
+            accent-color: #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="controls">
+            <div class="control-group">
+                <label>Processing Pattern</label>
+                <select id="processingPattern">
+                    <option value="swarm">Swarm Intelligence</option>
+                    <option value="neural">Neural Propagation</option>
+                    <option value="field">Force Field Dynamics</option>
+                    <option value="sync">Synchronization</option>
+                    <option value="cellular">Cellular Automata</option>
+                    <option value="percolation">Percolation Network</option>
+                    <option value="cascade">Cascade Effects</option>
+                    <option value="interference">Wave Interference</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>Node Count</label>
+                <input type="range" id="nodeCount" min="50" max="500" value="200">
+                <div class="value-display" id="nodeCountValue">200</div>
+            </div>
+            
+            <div class="control-group">
+                <label>Connection Threshold</label>
+                <input type="range" id="connectionThreshold" min="5" max="30" value="15">
+                <div class="value-display" id="connectionThresholdValue">15</div>
+            </div>
+            
+            <div class="control-group">
+                <label>Processing Speed</label>
+                <input type="range" id="processingSpeed" min="0.1" max="3" step="0.1" value="1">
+                <div class="value-display" id="processingSpeedValue">1.0</div>
+            </div>
+            
+            <div class="control-group">
+                <label>Field Strength</label>
+                <input type="range" id="fieldStrength" min="0.5" max="5" step="0.1" value="2">
+                <div class="value-display" id="fieldStrengthValue">2.0</div>
+            </div>
+            
+            <div class="control-group">
+                <label>Activation Decay</label>
+                <input type="range" id="activationDecay" min="0.9" max="0.99" step="0.01" value="0.95">
+                <div class="value-display" id="activationDecayValue">0.95</div>
+            </div>
+            
+            <div class="control-group">
+                <label>Space Distribution</label>
+                <input type="range" id="spaceSize" min="20" max="80" value="50">
+                <div class="value-display" id="spaceSizeValue">50</div>
+            </div>
+            
+            <div class="control-group">
+                <label>Node Size</label>
+                <input type="range" id="nodeSize" min="0.5" max="3" step="0.1" value="1">
+                <div class="value-display" id="nodeSizeValue">1.0</div>
+            </div>
+            
+            <div class="control-group">
+                <label>Node Color</label>
+                <input type="color" id="nodeColor" value="#000000">
+            </div>
+            
+            <div class="control-group">
+                <label>Background Color</label>
+                <input type="color" id="bgColor" value="#ffffff">
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="showConnections" checked>
+                <label for="showConnections">Show Connections</label>
+            </div>
+            
+            <div class="button-group">
+                <button id="playPause" class="active">Pause</button>
+                <button id="reset">Reset</button>
+            </div>
+        </div>
+        
+        <div id="stats">
+            <div>FPS: <span id="fps">60</span></div>
+            <div>Nodes: <span id="nodeCountStat">200</span></div>
+            <div>Connections: <span id="connectionCount">0</span></div>
+            <div>Pattern: <span id="currentPattern">Swarm Intelligence</span></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, nodes = [], connections = [];
+        let isPlaying = true;
+        let animationId;
+        let frameCount = 0;
+        let lastFPSUpdate = 0;
+        let connectionLines = new THREE.Group();
+        
+        // Parameters
+        let params = {
+            processingPattern: 'swarm',
+            nodeCount: 200,
+            connectionThreshold: 15,
+            processingSpeed: 1,
+            fieldStrength: 2,
+            activationDecay: 0.95,
+            spaceSize: 50,
+            nodeSize: 1,
+            nodeColor: '#000000',
+            bgColor: '#ffffff',
+            showConnections: true
+        };
+        
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(params.bgColor);
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            camera.position.set(60, 40, 60);
+            camera.lookAt(0, 0, 0);
+            
+            scene.add(connectionLines);
+            
+            createNodes();
+            setupControls();
+            animate();
+        }
+        
+        class ProcessingNode {
+            constructor(x, y, z) {
+                this.position = new THREE.Vector3(x, y, z);
+                this.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.1,
+                    (Math.random() - 0.5) * 0.1,
+                    (Math.random() - 0.5) * 0.1
+                );
+                this.activation = Math.random();
+                this.targetActivation = 0;
+                this.connections = [];
+                this.phase = Math.random() * Math.PI * 2;
+                this.frequency = 0.5 + Math.random() * 2;
+                this.lastActivationTime = 0;
+                
+                // Create visual representation
+                const geometry = new THREE.SphereGeometry(0.2, 8, 8);
+                const material = new THREE.MeshBasicMaterial({ color: params.nodeColor });
+                this.mesh = new THREE.Mesh(geometry, material);
+                this.mesh.position.copy(this.position);
+                scene.add(this.mesh);
+            }
+            
+            update(time, allNodes) {
+                this.updatePattern(time, allNodes);
+                this.updateVisuals();
+                this.mesh.position.copy(this.position);
+            }
+            
+            updatePattern(time, allNodes) {
+                const t = time * 0.001 * params.processingSpeed;
+                
+                switch (params.processingPattern) {
+                    case 'swarm':
+                        this.updateSwarm(allNodes);
+                        break;
+                    case 'neural':
+                        this.updateNeural(allNodes, t);
+                        break;
+                    case 'field':
+                        this.updateField(allNodes, t);
+                        break;
+                    case 'sync':
+                        this.updateSync(allNodes, t);
+                        break;
+                    case 'cellular':
+                        this.updateCellular(allNodes);
+                        break;
+                    case 'percolation':
+                        this.updatePercolation(allNodes, t);
+                        break;
+                    case 'cascade':
+                        this.updateCascade(allNodes, t);
+                        break;
+                    case 'interference':
+                        this.updateInterference(allNodes, t);
+                        break;
+                }
+                
+                // Apply activation decay
+                this.activation *= params.activationDecay;
+                this.activation = Math.max(0, Math.min(1, this.activation));
+                
+                // Update position with constraints
+                this.position.add(this.velocity);
+                this.constrainToSpace();
+            }
+            
+            updateSwarm(allNodes) {
+                const separationForce = new THREE.Vector3();
+                const alignmentForce = new THREE.Vector3();
+                const cohesionForce = new THREE.Vector3();
+                let neighbors = 0;
+                
+                allNodes.forEach(other => {
+                    if (other === this) return;
+                    const distance = this.position.distanceTo(other.position);
+                    
+                    if (distance < params.connectionThreshold) {
+                        neighbors++;
+                        
+                        // Separation
+                        const diff = new THREE.Vector3().subVectors(this.position, other.position);
+                        diff.normalize().divideScalar(distance);
+                        separationForce.add(diff);
+                        
+                        // Alignment
+                        alignmentForce.add(other.velocity);
+                        
+                        // Cohesion
+                        cohesionForce.add(other.position);
+                    }
+                });
+                
+                if (neighbors > 0) {
+                    alignmentForce.divideScalar(neighbors);
+                    cohesionForce.divideScalar(neighbors).sub(this.position);
+                    
+                    this.velocity.add(separationForce.multiplyScalar(0.01));
+                    this.velocity.add(alignmentForce.multiplyScalar(0.005));
+                    this.velocity.add(cohesionForce.multiplyScalar(0.005));
+                }
+                
+                this.velocity.multiplyScalar(0.99); // Damping
+            }
+            
+            updateNeural(allNodes, t) {
+                let inputSum = 0;
+                this.connections.forEach(connection => {
+                    inputSum += connection.node.activation * connection.weight;
+                });
+                
+                // Sigmoid activation function
+                this.targetActivation = 1 / (1 + Math.exp(-inputSum + 0.5));
+                this.activation += (this.targetActivation - this.activation) * 0.1;
+                
+                // Slight movement based on activation
+                this.velocity.add(new THREE.Vector3(
+                    Math.sin(t + this.phase) * this.activation * 0.01,
+                    Math.cos(t + this.phase) * this.activation * 0.01,
+                    Math.sin(t * 1.5 + this.phase) * this.activation * 0.01
+                ));
+            }
+            
+            updateField(allNodes, t) {
+                const force = new THREE.Vector3();
+                
+                allNodes.forEach(other => {
+                    if (other === this) return;
+                    const distance = this.position.distanceTo(other.position);
+                    if (distance > 0 && distance < params.connectionThreshold * 2) {
+                        const direction = new THREE.Vector3().subVectors(this.position, other.position);
+                        direction.normalize();
+                        
+                        // Inverse square law with activation influence
+                        const strength = params.fieldStrength * other.activation / (distance * distance);
+                        force.add(direction.multiplyScalar(strength * 0.01));
+                    }
+                });
+                
+                this.velocity.add(force);
+                this.velocity.multiplyScalar(0.98);
+            }
+            
+            updateSync(allNodes, t) {
+                let avgPhase = 0;
+                let neighbors = 0;
+                
+                allNodes.forEach(other => {
+                    if (other === this) return;
+                    const distance = this.position.distanceTo(other.position);
+                    if (distance < params.connectionThreshold) {
+                        avgPhase += other.phase;
+                        neighbors++;
+                    }
+                });
+                
+                if (neighbors > 0) {
+                    avgPhase /= neighbors;
+                    this.phase += (avgPhase - this.phase) * 0.05; // Sync rate
+                }
+                
+                this.phase += this.frequency * 0.02;
+                this.activation = (Math.sin(this.phase) + 1) / 2;
+                
+                // Movement based on phase
+                this.velocity.add(new THREE.Vector3(
+                    Math.cos(this.phase) * 0.005,
+                    Math.sin(this.phase * 1.3) * 0.005,
+                    Math.sin(this.phase * 0.7) * 0.005
+                ));
+            }
+            
+            updateCellular(allNodes) {
+                let activeNeighbors = 0;
+                let totalNeighbors = 0;
+                
+                allNodes.forEach(other => {
+                    if (other === this) return;
+                    const distance = this.position.distanceTo(other.position);
+                    if (distance < params.connectionThreshold) {
+                        totalNeighbors++;
+                        if (other.activation > 0.5) activeNeighbors++;
+                    }
+                });
+                
+                // Conway's Game of Life-like rules, adapted for continuous values
+                if (this.activation > 0.5) {
+                    this.activation = (activeNeighbors >= 2 && activeNeighbors <= 3) ? 0.9 : 0.1;
+                } else {
+                    this.activation = (activeNeighbors === 3) ? 0.9 : this.activation * 0.95;
+                }
+            }
+            
+            updatePercolation(allNodes, t) {
+                const threshold = Math.sin(t * 0.5) * 0.3 + 0.5;
+                let connectedToActive = false;
+                
+                allNodes.forEach(other => {
+                    if (other === this) return;
+                    const distance = this.position.distanceTo(other.position);
+                    if (distance < params.connectionThreshold && other.activation > threshold) {
+                        connectedToActive = true;
+                    }
+                });
+                
+                if (connectedToActive || Math.random() < 0.001) {
+                    this.activation = Math.min(1, this.activation + 0.1);
+                } else {
+                    this.activation *= 0.99;
+                }
+            }
+            
+            updateCascade(allNodes, t) {
+                let activationInput = 0;
+                
+                allNodes.forEach(other => {
+                    if (other === this) return;
+                    const distance = this.position.distanceTo(other.position);
+                    if (distance < params.connectionThreshold) {
+                        const influence = other.activation * (1 / (distance + 1));
+                        activationInput += influence;
+                    }
+                });
+                
+                if (activationInput > 0.5 && this.activation < 0.3) {
+                    this.activation = 0.9;
+                    this.lastActivationTime = t;
+                }
+                
+                // Pulse movement when activated
+                if (t - this.lastActivationTime < 1) {
+                    const pulseStrength = 1 - (t - this.lastActivationTime);
+                    this.velocity.add(new THREE.Vector3(
+                        (Math.random() - 0.5) * pulseStrength * 0.02,
+                        (Math.random() - 0.5) * pulseStrength * 0.02,
+                        (Math.random() - 0.5) * pulseStrength * 0.02
+                    ));
+                }
+            }
+            
+            updateInterference(allNodes, t) {
+                let waveSum = 0;
+                
+                allNodes.forEach(other => {
+                    if (other === this) return;
+                    const distance = this.position.distanceTo(other.position);
+                    const wave = Math.sin(distance * 0.2 - t * 2) * other.activation;
+                    waveSum += wave / (distance + 1);
+                });
+                
+                this.activation = (waveSum + 1) / 2;
+                this.activation = Math.max(0, Math.min(1, this.activation));
+                
+                // Move based on wave gradients
+                const gradient = new THREE.Vector3();
+                allNodes.forEach(other => {
+                    if (other === this) return;
+                    const distance = this.position.distanceTo(other.position);
+                    if (distance > 0) {
+                        const direction = new THREE.Vector3().subVectors(this.position, other.position);
+                        direction.normalize();
+                        const waveGrad = Math.cos(distance * 0.2 - t * 2) * other.activation * 0.2;
+                        gradient.add(direction.multiplyScalar(waveGrad / (distance + 1)));
+                    }
+                });
+                
+                this.velocity.add(gradient.multiplyScalar(0.001));
+            }
+            
+            constrainToSpace() {
+                const bounds = params.spaceSize;
+                if (this.position.x > bounds) { this.position.x = bounds; this.velocity.x *= -0.5; }
+                if (this.position.x < -bounds) { this.position.x = -bounds; this.velocity.x *= -0.5; }
+                if (this.position.y > bounds) { this.position.y = bounds; this.velocity.y *= -0.5; }
+                if (this.position.y < -bounds) { this.position.y = -bounds; this.velocity.y *= -0.5; }
+                if (this.position.z > bounds) { this.position.z = bounds; this.velocity.z *= -0.5; }
+                if (this.position.z < -bounds) { this.position.z = -bounds; this.velocity.z *= -0.5; }
+            }
+            
+            updateVisuals() {
+                // Color based on activation
+                const baseColor = new THREE.Color(params.nodeColor);
+                const intensity = this.activation;
+                this.mesh.material.color.setRGB(
+                    baseColor.r * intensity,
+                    baseColor.g * intensity,
+                    baseColor.b * intensity
+                );
+                
+                // Size based on activation
+                const scale = params.nodeSize * (0.5 + this.activation * 0.5);
+                this.mesh.scale.setScalar(scale);
+            }
+        }
+        
+        function createNodes() {
+            // Clear existing nodes
+            nodes.forEach(node => scene.remove(node.mesh));
+            nodes = [];
+            
+            for (let i = 0; i < params.nodeCount; i++) {
+                const x = (Math.random() - 0.5) * params.spaceSize * 2;
+                const y = (Math.random() - 0.5) * params.spaceSize * 2;
+                const z = (Math.random() - 0.5) * params.spaceSize * 2;
+                
+                const node = new ProcessingNode(x, y, z);
+                nodes.push(node);
+            }
+            
+            updateConnections();
+            document.getElementById('nodeCountStat').textContent = params.nodeCount;
+        }
+        
+        function updateConnections() {
+            // Clear existing connections
+            connectionLines.clear();
+            
+            if (!params.showConnections) return;
+            
+            let connectionCount = 0;
+            const material = new THREE.LineBasicMaterial({ 
+                color: 0x333333, 
+                transparent: true, 
+                opacity: 0.3 
+            });
+            
+            for (let i = 0; i < nodes.length; i++) {
+                nodes[i].connections = [];
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const distance = nodes[i].position.distanceTo(nodes[j].position);
+                    if (distance < params.connectionThreshold) {
+                        connectionCount++;
+                        
+                        // Add to connections for processing
+                        nodes[i].connections.push({
+                            node: nodes[j],
+                            weight: 1 / (distance + 1)
+                        });
+                        nodes[j].connections.push({
+                            node: nodes[i],
+                            weight: 1 / (distance + 1)
+                        });
+                        
+                        // Create visual line
+                        const geometry = new THREE.BufferGeometry().setFromPoints([
+                            nodes[i].position,
+                            nodes[j].position
+                        ]);
+                        const line = new THREE.Line(geometry, material);
+                        connectionLines.add(line);
+                    }
+                }
+            }
+            
+            document.getElementById('connectionCount').textContent = connectionCount;
+        }
+        
+        function animate(currentTime = 0) {
+            if (!isPlaying) return;
+            
+            animationId = requestAnimationFrame(animate);
+            
+            // FPS calculation
+            frameCount++;
+            if (currentTime - lastFPSUpdate > 1000) {
+                document.getElementById('fps').textContent = Math.round(frameCount * 1000 / (currentTime - lastFPSUpdate));
+                frameCount = 0;
+                lastFPSUpdate = currentTime;
+            }
+            
+            // Update all nodes
+            nodes.forEach(node => node.update(currentTime, nodes));
+            
+            // Update connections if they're visible
+            if (params.showConnections) {
+                updateConnections();
+            }
+            
+            // Camera movement
+            const radius = 80;
+            camera.position.x = Math.cos(currentTime * 0.0002) * radius;
+            camera.position.z = Math.sin(currentTime * 0.0002) * radius;
+            camera.lookAt(0, 0, 0);
+            
+            renderer.render(scene, camera);
+        }
+        
+        function setupControls() {
+            // Processing pattern selector
+            const patternSelect = document.getElementById('processingPattern');
+            patternSelect.addEventListener('change', (e) => {
+                params.processingPattern = e.target.value;
+                const patternNames = {
+                    'swarm': 'Swarm Intelligence',
+                    'neural': 'Neural Propagation',
+                    'field': 'Force Field Dynamics',
+                    'sync': 'Synchronization',
+                    'cellular': 'Cellular Automata',
+                    'percolation': 'Percolation Network',
+                    'cascade': 'Cascade Effects',
+                    'interference': 'Wave Interference'
+                };
+                document.getElementById('currentPattern').textContent = patternNames[params.processingPattern];
+            });
+            
+            // Node count
+            const nodeCountSlider = document.getElementById('nodeCount');
+            nodeCountSlider.addEventListener('input', (e) => {
+                params.nodeCount = parseInt(e.target.value);
+                document.getElementById('nodeCountValue').textContent = params.nodeCount;
+                createNodes();
+            });
+            
+            // Connection threshold
+            const connectionThresholdSlider = document.getElementById('connectionThreshold');
+            connectionThresholdSlider.addEventListener('input', (e) => {
+                params.connectionThreshold = parseFloat(e.target.value);
+                document.getElementById('connectionThresholdValue').textContent = params.connectionThreshold;
+                updateConnections();
+            });
+            
+            // Processing speed
+            const processingSpeedSlider = document.getElementById('processingSpeed');
+            processingSpeedSlider.addEventListener('input', (e) => {
+                params.processingSpeed = parseFloat(e.target.value);
+                document.getElementById('processingSpeedValue').textContent = params.processingSpeed.toFixed(1);
+            });
+            
+            // Field strength
+            const fieldStrengthSlider = document.getElementById('fieldStrength');
+            fieldStrengthSlider.addEventListener('input', (e) => {
+                params.fieldStrength = parseFloat(e.target.value);
+                document.getElementById('fieldStrengthValue').textContent = params.fieldStrength.toFixed(1);
+            });
+            
+            // Activation decay
+            const activationDecaySlider = document.getElementById('activationDecay');
+            activationDecaySlider.addEventListener('input', (e) => {
+                params.activationDecay = parseFloat(e.target.value);
+                document.getElementById('activationDecayValue').textContent = params.activationDecay.toFixed(2);
+            });
+            
+            // Space size
+            const spaceSizeSlider = document.getElementById('spaceSize');
+            spaceSizeSlider.addEventListener('input', (e) => {
+                params.spaceSize = parseFloat(e.target.value);
+                document.getElementById('spaceSizeValue').textContent = params.spaceSize;
+            });
+            
+            // Node size
+            const nodeSizeSlider = document.getElementById('nodeSize');
+            nodeSizeSlider.addEventListener('input', (e) => {
+                params.nodeSize = parseFloat(e.target.value);
+                document.getElementById('nodeSizeValue').textContent = params.nodeSize.toFixed(1);
+            });
+            
+            // Colors
+            const nodeColorPicker = document.getElementById('nodeColor');
+            nodeColorPicker.addEventListener('input', (e) => {
+                params.nodeColor = e.target.value;
+            });
+            
+            const bgColorPicker = document.getElementById('bgColor');
+            bgColorPicker.addEventListener('input', (e) => {
+                params.bgColor = e.target.value;
+                renderer.setClearColor(params.bgColor);
+                document.body.style.background = params.bgColor;
+            });
+            
+            // Show connections checkbox
+            const showConnectionsCheckbox = document.getElementById('showConnections');
+            showConnectionsCheckbox.addEventListener('change', (e) => {
+                params.showConnections = e.target.checked;
+                updateConnections();
+            });
+            
+            // Control buttons
+            const playPauseBtn = document.getElementById('playPause');
+            playPauseBtn.addEventListener('click', () => {
+                isPlaying = !isPlaying;
+                if (isPlaying) {
+                    playPauseBtn.textContent = 'Pause';
+                    playPauseBtn.classList.add('active');
+                    animate();
+                } else {
+                    playPauseBtn.textContent = 'Play';
+                    playPauseBtn.classList.remove('active');
+                    cancelAnimationFrame(animationId);
+                }
+            });
+            
+            const resetBtn = document.getElementById('reset');
+            resetBtn.addEventListener('click', () => {
+                createNodes();
+            });
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
