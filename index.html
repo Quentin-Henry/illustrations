@@ -192,6 +192,10 @@
                     <option value="logicGates">Digital Logic</option>
                     <option value="shiftRegisters">Shift Registers</option>
                     <option value="clockDomains">Clock Domains</option>
+                    <option value="polynomialGrid">Polynomial Grid</option>
+                    <option value="distanceFields">Distance Fields</option>
+                    <option value="smoothModular">Smooth Modular</option>
+                    <option value="exponentialGrid">Exponential Grid</option>
                 </select>
             </label>
             <label>Quantization Steps:
@@ -858,6 +862,135 @@
             return finalHeight * signalStrength + amplitude * 0.1;
         }
 
+        // Polynomial grid - cubic and quartic functions creating terraced landscapes
+        function polynomialGrid(x, y, time) {
+            const scale = 0.3 * waveScale;
+            const timeOffset = time * speed * 0.1;
+            
+            // Quantize to grid
+            const gridX = Math.floor(x * scale);
+            const gridY = Math.floor(y * scale);
+            
+            // Cubic polynomial combining grid coordinates
+            const cubicTerm = (gridX * gridX * gridX + gridY * gridY * gridY) * 0.001;
+            const quadraticTerm = (gridX * gridX + gridY * gridY) * 0.01;
+            
+            // Smooth time modulation (non-sinusoidal)
+            const timeModulation = (timeOffset % 4) / 4; // Linear ramp 0 to 1
+            const smoothTime = timeModulation * timeModulation * (3 - 2 * timeModulation); // Smoothstep
+            
+            // Combine polynomial terms with smooth time
+            const polynomialValue = (cubicTerm + quadraticTerm) * (1 + smoothTime);
+            
+            return (polynomialValue % 1) * amplitude;
+        }
+
+        // Distance fields - Manhattan and Chebyshev distances from grid points
+        function distanceFields(x, y, time) {
+            const gridSize = 4 / waveScale;
+            const timeOffset = time * speed * 0.2; // Increased speed multiplier
+            
+            // Moving grid points - shift grid over time
+            const shiftX = (timeOffset * 2) % gridSize;
+            const shiftY = (timeOffset * 1.3) % gridSize;
+            
+            // Find nearest grid point with movement
+            const gridX = Math.round((x - shiftX) / gridSize) * gridSize + shiftX;
+            const gridY = Math.round((y - shiftY) / gridSize) * gridSize + shiftY;
+            
+            // Calculate different distance metrics
+            const manhattanDist = Math.abs(x - gridX) + Math.abs(y - gridY); // Diamond pattern
+            const chebyshevDist = Math.max(Math.abs(x - gridX), Math.abs(y - gridY)); // Square pattern
+            const euclideanDist = Math.sqrt((x - gridX) * (x - gridX) + (y - gridY) * (y - gridY));
+            
+            // Smooth transition between distance types with faster cycling
+            const transitionPhase = (timeOffset * 0.3) % 3; // Faster transitions
+            let distance;
+            
+            if (transitionPhase < 1) {
+                // Smooth blend between manhattan and chebyshev
+                const blend = transitionPhase;
+                distance = manhattanDist * (1 - blend) + chebyshevDist * blend;
+            } else if (transitionPhase < 2) {
+                // Smooth blend between chebyshev and euclidean
+                const blend = transitionPhase - 1;
+                distance = chebyshevDist * (1 - blend) + euclideanDist * blend;
+            } else {
+                // Smooth blend between euclidean and manhattan
+                const blend = transitionPhase - 2;
+                distance = euclideanDist * (1 - blend) + manhattanDist * blend;
+            }
+            
+            // Add pulsing effect to the pattern
+            const pulsePhase = timeOffset * 0.8;
+            const pulse = 0.7 + 0.3 * (pulsePhase % 1); // Pulse between 0.7 and 1.0
+            
+            // Invert and scale distance to create height field
+            const normalizedDist = distance / (gridSize * 0.7); // Adjusted scaling
+            const height = Math.max(0, 1 - normalizedDist) * pulse;
+            
+            return height * amplitude;
+        }
+
+        // Smooth modular - custom smooth modulo function without sine waves
+        function smoothModular(x, y, time) {
+            const cellSize = 3 / waveScale;
+            const timeOffset = time * speed * 0.1;
+            
+            // Create smooth modulo using polynomial interpolation
+            function smoothMod(value, modulus) {
+                const quotient = Math.floor(value / modulus);
+                const remainder = value - quotient * modulus;
+                const normalizedRemainder = remainder / modulus;
+                
+                // Cubic interpolation for smooth transitions
+                return normalizedRemainder * normalizedRemainder * (3 - 2 * normalizedRemainder);
+            }
+            
+            // Apply smooth modulo to coordinates
+            const smoothX = smoothMod(x + timeOffset, cellSize);
+            const smoothY = smoothMod(y + timeOffset * 0.7, cellSize);
+            
+            // Combine with polynomial blending
+            const combined = smoothX * smoothY + (smoothX + smoothY) * 0.5;
+            
+            // Create stepped levels using power functions
+            const stepped = Math.pow(combined, 2 + timeOffset % 2);
+            
+            return stepped * amplitude;
+        }
+
+        // Exponential grid - inverse square law and exponential decay from grid points
+        function exponentialGrid(x, y, time) {
+            const gridSpacing = 4 / waveScale; // Reduced spacing for better visibility
+            const timeOffset = time * speed * 0.2; // Increased time multiplier
+            
+            let totalInfluence = 0;
+            
+            // Reduced grid for better performance and visibility
+            for (let gx = -1; gx <= 1; gx++) {
+                for (let gy = -1; gy <= 1; gy++) {
+                    const pointX = gx * gridSpacing;
+                    const pointY = gy * gridSpacing;
+                    const distance = Math.sqrt((x - pointX) * (x - pointX) + (y - pointY) * (y - pointY));
+                    
+                    // Stronger exponential decay with better scaling
+                    const influence = 3 / (1 + distance * distance * 0.05); // Increased base influence
+                    
+                    // Time-based modulation using power functions
+                    const timePhase = (timeOffset * 0.5 + gx * 0.3 + gy * 0.7) % 2;
+                    const timeMod = 0.3 + 0.7 * Math.pow(Math.abs(1 - timePhase), 1.2); // Smoother, more visible modulation
+                    
+                    totalInfluence += influence * timeMod;
+                }
+            }
+            
+            // Better scaling for visibility
+            const scaled = Math.min(totalInfluence * 0.3, 1); // Clamped to prevent overflow
+            
+            return scaled * amplitude;
+        }
+
         function getDisplacement(x, y, time) {
             switch (displacementType) {
                 case 'perlin':
@@ -890,6 +1023,14 @@
                     return shiftRegisters(x, y, time);
                 case 'clockDomains':
                     return clockDomains(x, y, time);
+                case 'polynomialGrid':
+                    return polynomialGrid(x, y, time);
+                case 'distanceFields':
+                    return distanceFields(x, y, time);
+                case 'smoothModular':
+                    return smoothModular(x, y, time);
+                case 'exponentialGrid':
+                    return exponentialGrid(x, y, time);
                 default:
                     return simpleWave(x, y, time);
             }
