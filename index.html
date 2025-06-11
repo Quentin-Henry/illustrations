@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dot Grid Illustrations</title>
+    <title>3D Water Dot Matrix - Enhanced Controls</title>
     <style>
         body {
             margin: 0;
@@ -188,6 +188,10 @@
                     <option value="ripples">Multi Ripples</option>
                     <option value="fractal">Fractal Noise</option>
                     <option value="diagonal">Diagonal Waves</option>
+                    <option value="circuitTraces">Circuit Traces</option>
+                    <option value="logicGates">Digital Logic</option>
+                    <option value="shiftRegisters">Shift Registers</option>
+                    <option value="clockDomains">Clock Domains</option>
                 </select>
             </label>
             <label>Quantization Steps:
@@ -711,6 +715,149 @@
             return (diagonal1 + diagonal2 * 0.5) * amplitude;
         }
 
+        // Circuit traces - mathematical pathways like PCB traces
+        function circuitTraces(x, y, time) {
+            const scale = 2 / waveScale;
+            const timeOffset = time * speed * 0.1;
+            
+            // Create horizontal and vertical "traces" using floor functions
+            const traceX = Math.floor(x / scale) * scale;
+            const traceY = Math.floor(y / scale) * scale;
+            
+            // Mathematical trace selection using modular arithmetic
+            const traceIdX = Math.floor(x / scale) % 3;
+            const traceIdY = Math.floor(y / scale) % 3;
+            
+            let height = 0;
+            
+            // Horizontal traces
+            if (traceIdY === 0) {
+                const signal = Math.sin((x * 0.5 + timeOffset) * Math.PI);
+                height += (signal > 0 ? amplitude * 0.8 : amplitude * 0.2);
+            }
+            
+            // Vertical traces  
+            if (traceIdX === 0) {
+                const signal = Math.cos((y * 0.3 + timeOffset * 0.7) * Math.PI);
+                height += (signal > 0 ? amplitude * 0.8 : amplitude * 0.2);
+            }
+            
+            // Via connections (intersections)
+            if (traceIdX === 0 && traceIdY === 0) {
+                height = amplitude * 1.2;
+            }
+            
+            return height;
+        }
+
+        // Digital logic gates using XOR and AND operations
+        function digitalLogic(x, y, time) {
+            const cellSize = 4 / waveScale;
+            const timeOffset = Math.floor(time * speed);
+            
+            // Convert to grid coordinates
+            const gridX = Math.floor(x / cellSize);
+            const gridY = Math.floor(y / cellSize);
+            
+            // Digital logic operations
+            const inputA = (gridX + timeOffset) % 2;
+            const inputB = (gridY + Math.floor(timeOffset * 0.3)) % 2;
+            
+            // XOR gate behavior
+            const xorResult = inputA ^ inputB;
+            
+            // AND gate behavior  
+            const andResult = inputA & inputB;
+            
+            // Combine results based on position
+            const gateType = (gridX + gridY) % 3;
+            let output = 0;
+            
+            switch (gateType) {
+                case 0: // XOR regions
+                    output = xorResult;
+                    break;
+                case 1: // AND regions
+                    output = andResult;
+                    break;
+                case 2: // OR regions
+                    output = inputA | inputB;
+                    break;
+            }
+            
+            return output * amplitude;
+        }
+
+        // Shift registers - data moving through sequential logic
+        function shiftRegisters(x, y, time) {
+            const cellSize = 2.5 / waveScale;
+            const timeOffset = time * speed;
+            
+            // Create shift register chains
+            const chainX = Math.floor(x / cellSize);
+            const chainY = Math.floor(y / (cellSize * 4)); // Wider chains
+            
+            // Position within the chain
+            const posInChain = chainX % 8; // 8-bit shift registers
+            
+            // Shift register state - data moves right over time
+            const shiftTime = Math.floor(timeOffset * 2);
+            const bitPattern = 0b10110100; // Example 8-bit pattern
+            const shiftedPattern = ((bitPattern << shiftTime) | (bitPattern >> (8 - shiftTime))) & 0xFF;
+            
+            // Extract bit at current position
+            const bitValue = (shiftedPattern >> posInChain) & 1;
+            
+            // Clock signal affects all registers
+            const clockPhase = Math.sin(timeOffset * 4) > 0 ? 1 : 0;
+            
+            // Height based on bit value and clock
+            const baseHeight = bitValue * amplitude * 0.8;
+            const clockBoost = clockPhase * amplitude * 0.2;
+            
+            // Add inter-register spacing
+            const localY = y - (chainY * cellSize * 4 + cellSize * 2);
+            if (Math.abs(localY) > cellSize) {
+                return amplitude * 0.1; // Ground plane
+            }
+            
+            return baseHeight + clockBoost;
+        }
+
+        // Clock domains - synchronized timing regions
+        function clockDomains(x, y, time) {
+            const domainSize = 6 / waveScale;
+            const timeOffset = time * speed;
+            
+            // Determine clock domain
+            const domainX = Math.floor(x / domainSize);
+            const domainY = Math.floor(y / domainSize);
+            const domainId = (domainX + domainY * 3) % 4; // 4 different clock domains
+            
+            // Each domain has different clock frequency
+            const clockFreqs = [1, 2, 4, 3]; // Different frequencies
+            const clockPhase = timeOffset * clockFreqs[domainId];
+            
+            // Position within domain
+            const localX = x - (domainX * domainSize + domainSize / 2);
+            const localY = y - (domainY * domainSize + domainSize / 2);
+            
+            // Clock signal strength based on distance from domain center
+            const distFromCenter = Math.sqrt(localX * localX + localY * localY);
+            const signalStrength = Math.max(0, 1 - (distFromCenter / (domainSize / 2)));
+            
+            // Digital clock signal (square wave)
+            const clockHigh = Math.sin(clockPhase * Math.PI * 2) > 0;
+            const clockHeight = clockHigh ? amplitude : amplitude * 0.3;
+            
+            // Clock skew - slight delay based on distance from center
+            const skew = distFromCenter * 0.1;
+            const skewedClock = Math.sin((clockPhase - skew) * Math.PI * 2) > 0;
+            const finalHeight = skewedClock ? amplitude : amplitude * 0.3;
+            
+            return finalHeight * signalStrength + amplitude * 0.1;
+        }
+
         function getDisplacement(x, y, time) {
             switch (displacementType) {
                 case 'perlin':
@@ -735,6 +882,14 @@
                     return fractalPattern(x, y, time);
                 case 'diagonal':
                     return diagonalWaves(x, y, time);
+                case 'circuitTraces':
+                    return circuitTraces(x, y, time);
+                case 'logicGates':
+                    return digitalLogic(x, y, time);
+                case 'shiftRegisters':
+                    return shiftRegisters(x, y, time);
+                case 'clockDomains':
+                    return clockDomains(x, y, time);
                 default:
                     return simpleWave(x, y, time);
             }
