@@ -196,6 +196,14 @@
                     <option value="distanceFields">Distance Fields</option>
                     <option value="smoothModular">Smooth Modular</option>
                     <option value="exponentialGrid">Exponential Grid</option>
+                    <option value="mandelbrot">Mandelbrot Field</option>
+                    <option value="voronoi">Voronoi Field</option>
+                    <option value="primeSpiral">Prime Spiral</option>
+                    <option value="crystalline">Crystal Lattice</option>
+                    <option value="sphericalProj">Spherical Projection</option>
+                    <option value="paraboloid">Paraboloid Surface</option>
+                    <option value="hyperboloid">Hyperboloid Surface</option>
+                    <option value="toroidal">Toroidal Field</option>
                 </select>
             </label>
             <label>Quantization Steps:
@@ -991,6 +999,298 @@
             return scaled * amplitude;
         }
 
+        // Mandelbrot field - complex plane iteration effects across the entire surface
+        function mandelbrotField(x, y, time) {
+            const scale = 0.1 * waveScale;
+            const timeOffset = time * speed * 0.1;
+            
+            // Map coordinates to complex plane
+            const cx = x * scale;
+            const cy = y * scale;
+            
+            // Animated Julia set parameter
+            const juliaX = Math.cos(timeOffset * 0.7) * 0.3;
+            const juliaY = Math.cos(timeOffset * 0.5) * 0.3;
+            
+            // Mandelbrot iteration with time-varying escape threshold
+            let zx = cx;
+            let zy = cy;
+            let iteration = 0;
+            const maxIterations = 8; // Keep low for performance
+            const escapeRadius = 2 + Math.cos(timeOffset) * 0.5;
+            
+            while (iteration < maxIterations && (zx * zx + zy * zy) < escapeRadius * escapeRadius) {
+                const tempX = zx * zx - zy * zy + juliaX;
+                zy = 2 * zx * zy + juliaY;
+                zx = tempX;
+                iteration++;
+            }
+            
+            // Convert iteration count to height field
+            const normalizedIterations = iteration / maxIterations;
+            
+            // Smooth interpolation for continuous field
+            if (iteration < maxIterations) {
+                const finalMagnitude = Math.sqrt(zx * zx + zy * zy);
+                const smoothed = iteration + 1 - Math.log(Math.log(finalMagnitude)) / Math.log(2);
+                return (smoothed / maxIterations) * amplitude;
+            }
+            
+            return normalizedIterations * amplitude;
+        }
+
+        // Voronoi field - distance to nearest seed points creates cellular patterns
+        function voronoiField(x, y, time) {
+            const timeOffset = time * speed * 0.1;
+            const seedSpacing = 6 / waveScale;
+            
+            // Generate moving seed points
+            const seeds = [];
+            for (let i = -2; i <= 2; i++) {
+                for (let j = -2; j <= 2; j++) {
+                    const seedX = i * seedSpacing + Math.cos(timeOffset + i * 0.7) * 1.5;
+                    const seedY = j * seedSpacing + Math.cos(timeOffset * 0.8 + j * 1.1) * 1.5;
+                    seeds.push({ x: seedX, y: seedY, id: i * 5 + j });
+                }
+            }
+            
+            // Find distances to all seeds
+            let minDist1 = Infinity;
+            let minDist2 = Infinity;
+            
+            for (const seed of seeds) {
+                const dist = Math.sqrt((x - seed.x) * (x - seed.x) + (y - seed.y) * (y - seed.y));
+                if (dist < minDist1) {
+                    minDist2 = minDist1;
+                    minDist1 = dist;
+                } else if (dist < minDist2) {
+                    minDist2 = dist;
+                }
+            }
+            
+            // Create height field based on relative distances
+            const voronoiValue = (minDist2 - minDist1) / seedSpacing;
+            
+            // Additional field based on distance to nearest seed
+            const fieldValue = 1 / (1 + minDist1 * minDist1 * 0.02);
+            
+            return (voronoiValue * 0.3 + fieldValue * 0.7) * amplitude;
+        }
+
+        // Prime spiral - mathematical properties of prime numbers create field distortions
+        function primeSpiral(x, y, time) {
+            const scale = 0.3 * waveScale;
+            const timeOffset = time * speed * 0.1;
+            
+            // Convert to polar-like coordinates
+            const distance = Math.sqrt(x * x + y * y) * scale;
+            const angle = Math.atan2(y, x);
+            
+            // Ulam spiral mapping
+            const spiralRadius = distance + timeOffset;
+            const spiralN = Math.floor(spiralRadius * spiralRadius / (4 * Math.PI));
+            
+            // Simple primality test (optimized for real-time)
+            function isPrimeish(n) {
+                if (n < 2) return false;
+                if (n === 2 || n === 3) return true;
+                if (n % 2 === 0 || n % 3 === 0) return false;
+                
+                // Check only a few divisors for performance
+                for (let i = 5; i * i <= n && i < 20; i += 6) {
+                    if (n % i === 0 || n % (i + 2) === 0) return false;
+                }
+                return true;
+            }
+            
+            // Create field based on prime density in local area
+            let primeCount = 0;
+            const checkRadius = 5;
+            for (let i = 0; i < checkRadius; i++) {
+                if (isPrimeish(spiralN + i)) primeCount++;
+            }
+            
+            const primeDensity = primeCount / checkRadius;
+            
+            // Modulate by position and create continuous field
+            const positionMod = (Math.abs(x) + Math.abs(y)) * scale % 1;
+            const field = primeDensity * (0.5 + 0.5 * positionMod);
+            
+            return field * amplitude;
+        }
+
+        // Crystal lattice - mathematical lattice structures create geometric field distortions
+        function crystalLattice(x, y, time) {
+            const scale = 0.2 * waveScale;
+            const timeOffset = time * speed * 0.05;
+            
+            // Hexagonal lattice basis vectors
+            const a1x = 1;
+            const a1y = 0;
+            const a2x = 0.5;
+            const a2y = Math.sqrt(3) / 2;
+            
+            // Transform coordinates to lattice space
+            const latticeX = (x * scale) + timeOffset;
+            const latticeY = (y * scale) + timeOffset * 0.7;
+            
+            // Find lattice coordinates
+            const u = (latticeX * a2y - latticeY * a2x) / (a1x * a2y - a1y * a2x);
+            const v = (latticeY * a1x - latticeX * a1y) / (a1x * a2y - a1y * a2x);
+            
+            // Quantize to lattice points
+            const latticeU = Math.round(u);
+            const latticeV = Math.round(v);
+            
+            // Distance to nearest lattice point
+            const nearestX = latticeU * a1x + latticeV * a2x;
+            const nearestY = latticeU * a1y + latticeV * a2y;
+            const distToLattice = Math.sqrt((latticeX - nearestX) * (latticeX - nearestX) + 
+                                          (latticeY - nearestY) * (latticeY - nearestY));
+            
+            // Create field based on lattice structure
+            const latticeField = Math.exp(-distToLattice * distToLattice * 8);
+            
+            // Miller indices pattern (crystallographic planes)
+            const h = 2;
+            const k = 1;
+            const l = 1;
+            const planeSpacing = 2 / Math.sqrt(h * h + k * k + l * l);
+            const planePhase = (latticeX * h + latticeY * k + timeOffset * l) / planeSpacing;
+            const planeField = Math.abs((planePhase % 1) - 0.5) * 2; // Sawtooth wave
+            
+            // Combine lattice and plane effects
+            return (latticeField * 0.7 + planeField * 0.3) * amplitude;
+        }
+
+        // Spherical projection - transforms flat plane into spherical surface
+        function sphericalProjection(x, y, time) {
+            const radius = 8 / waveScale;
+            const timeOffset = time * speed * 0.1;
+            
+            // Distance from center
+            const r = Math.sqrt(x * x + y * y);
+            
+            // Spherical projection: z = sqrt(R² - r²) for r < R, otherwise fade out
+            let sphereHeight = 0;
+            if (r < radius) {
+                sphereHeight = Math.sqrt(radius * radius - r * r);
+            } else {
+                // Smooth falloff outside sphere
+                const falloff = Math.max(0, 1 - (r - radius) / 2);
+                sphereHeight = falloff * falloff;
+            }
+            
+            // Add time-based perturbations using non-trigonometric functions
+            const timeModulation = (timeOffset % 2) / 2; // Linear ramp 0 to 1
+            const smoothTime = timeModulation * timeModulation * (3 - 2 * timeModulation); // Smoothstep
+            
+            // Latitude/longitude-like perturbations
+            const latitude = Math.acos(Math.min(1, r / radius));
+            const longitude = Math.atan2(y, x);
+            
+            // Perturbation based on spherical harmonics-like functions
+            const perturbation = Math.pow(Math.abs(latitude % 1 - 0.5), 1.5) * 
+                               Math.pow(Math.abs((longitude + timeOffset) % 1 - 0.5), 1.5);
+            
+            return (sphereHeight / radius + perturbation * 0.3 * smoothTime) * amplitude;
+        }
+
+        // Paraboloid surface - mathematical paraboloid z = x² + y²
+        function paraboloidSurface(x, y, time) {
+            const scale = 0.15 * waveScale;
+            const timeOffset = time * speed * 0.1;
+            
+            // Basic paraboloid equation
+            const scaledX = x * scale;
+            const scaledY = y * scale;
+            const baseHeight = scaledX * scaledX + scaledY * scaledY;
+            
+            // Time-based rotation of the paraboloid
+            const rotationAngle = timeOffset * 0.5;
+            const cosTheta = Math.cos(rotationAngle);
+            const sinTheta = Math.sin(rotationAngle);
+            
+            const rotatedX = scaledX * cosTheta - scaledY * sinTheta;
+            const rotatedY = scaledX * sinTheta + scaledY * cosTheta;
+            
+            // Rotated paraboloid
+            const rotatedHeight = rotatedX * rotatedX + rotatedY * rotatedY;
+            
+            // Blend between orientations
+            const blendFactor = (timeOffset % 4) / 4;
+            const smoothBlend = blendFactor * blendFactor * (3 - 2 * blendFactor);
+            
+            const finalHeight = baseHeight * (1 - smoothBlend) + rotatedHeight * smoothBlend;
+            
+            // Normalize and scale
+            return Math.min(finalHeight * 0.5, 1) * amplitude;
+        }
+
+        // Hyperboloid surface - mathematical hyperboloid z² = x² + y² + 1
+        function hyperboloidSurface(x, y, time) {
+            const scale = 0.2 * waveScale;
+            const timeOffset = time * speed * 0.1;
+            
+            // Hyperboloid equation: z = ±sqrt(x² + y² + offset²)
+            const scaledX = x * scale;
+            const scaledY = y * scale;
+            const offset = 1 + Math.cos(timeOffset) * 0.5; // Varying waist size
+            
+            // One sheet hyperboloid
+            const rSquared = scaledX * scaledX + scaledY * scaledY;
+            const hyperboloidZ = Math.sqrt(rSquared + offset * offset);
+            
+            // Create both positive and negative sheets based on position
+            const sheetSelector = Math.floor((x + y + timeOffset * 2) / 4) % 2;
+            const height = sheetSelector === 0 ? hyperboloidZ : -hyperboloidZ + 2 * offset;
+            
+            // Smooth the transition and normalize
+            const smoothHeight = (height - offset) / offset; // Center around 0
+            
+            // Apply time-based warping
+            const warpFactor = (timeOffset % 3) / 3;
+            const warpedHeight = smoothHeight * (1 + warpFactor * 0.5);
+            
+            return (warpedHeight + 1) * 0.5 * amplitude; // Shift to positive range
+        }
+
+        // Toroidal field - creates torus-like mathematical transformations
+        function toroidalField(x, y, time) {
+            const majorRadius = 6 / waveScale; // Major radius of torus
+            const minorRadius = 3 / waveScale; // Minor radius of torus
+            const timeOffset = time * speed * 0.1;
+            
+            // Distance from center (rho in cylindrical coordinates)
+            const rho = Math.sqrt(x * x + y * y);
+            
+            // Distance from the major radius ring
+            const distanceFromMajorRadius = Math.abs(rho - majorRadius);
+            
+            // Toroidal height calculation
+            let toroidHeight = 0;
+            if (distanceFromMajorRadius < minorRadius) {
+                // Inside the torus minor radius
+                toroidHeight = Math.sqrt(minorRadius * minorRadius - distanceFromMajorRadius * distanceFromMajorRadius);
+            } else {
+                // Outside torus - smooth falloff
+                const falloff = Math.max(0, 1 - (distanceFromMajorRadius - minorRadius) / 2);
+                toroidHeight = falloff * falloff * minorRadius;
+            }
+            
+            // Add toroidal perturbations
+            const toroidalAngle = Math.atan2(distanceFromMajorRadius, 0); // Poloidal angle
+            const azimuthalAngle = Math.atan2(y, x); // Toroidal angle
+            
+            // Time-varying surface perturbations
+            const poloidalPerturbation = Math.pow(Math.abs((toroidalAngle + timeOffset) % 1 - 0.5), 1.2);
+            const azimuthalPerturbation = Math.pow(Math.abs((azimuthalAngle * 3 + timeOffset * 0.7) % 1 - 0.5), 1.5);
+            
+            const perturbation = (poloidalPerturbation + azimuthalPerturbation) * 0.3;
+            
+            return (toroidHeight / minorRadius + perturbation) * amplitude;
+        }
+
         function getDisplacement(x, y, time) {
             switch (displacementType) {
                 case 'perlin':
@@ -1031,6 +1331,22 @@
                     return smoothModular(x, y, time);
                 case 'exponentialGrid':
                     return exponentialGrid(x, y, time);
+                case 'mandelbrot':
+                    return mandelbrotField(x, y, time);
+                case 'voronoi':
+                    return voronoiField(x, y, time);
+                case 'primeSpiral':
+                    return primeSpiral(x, y, time);
+                case 'crystalline':
+                    return crystalLattice(x, y, time);
+                case 'sphericalProj':
+                    return sphericalProjection(x, y, time);
+                case 'paraboloid':
+                    return paraboloidSurface(x, y, time);
+                case 'hyperboloid':
+                    return hyperboloidSurface(x, y, time);
+                case 'toroidal':
+                    return toroidalField(x, y, time);
                 default:
                     return simpleWave(x, y, time);
             }
