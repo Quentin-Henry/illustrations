@@ -3,780 +3,910 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Emergent Processing Visualization</title>
+    <title>3D Water Dot Matrix - Enhanced Controls</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
+            background: #000;
             overflow: hidden;
+            font-family: Arial, sans-serif;
         }
         
-        #container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
+        canvas {
+            display: block;
         }
         
-        #controls {
+        .controls {
             position: absolute;
             top: 20px;
             left: 20px;
-            z-index: 100;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
+            color: white;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            max-width: 340px;
+            max-height: 85vh;
+            overflow-y: auto;
+            min-width: 220px;
+        }
+        
+        .controls label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: bold;
         }
         
         .control-group {
-            margin-bottom: 15px;
-        }
-        
-        .control-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 12px;
-            color: #cccccc;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .control-group input[type="range"] {
-            width: 100%;
-            height: 4px;
-            background: #333;
-            border-radius: 2px;
-            outline: none;
-            -webkit-appearance: none;
-        }
-        
-        .control-group input[type="range"]::-webkit-slider-thumb {
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            background: #00ffff;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        
-        .control-group input[type="color"] {
-            width: 100%;
-            height: 30px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        .control-group select {
-            width: 100%;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            border-radius: 5px;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        button {
-            flex: 1;
-            padding: 10px;
-            background: rgba(0, 255, 255, 0.2);
-            border: 1px solid #00ffff;
-            color: #00ffff;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.3s ease;
-        }
-        
-        button:hover {
-            background: rgba(0, 255, 255, 0.3);
-        }
-        
-        button.active {
-            background: #00ffff;
-            color: #000;
-        }
-        
-        .value-display {
-            font-size: 11px;
-            color: #00ffff;
-            text-align: right;
-        }
-        
-        #stats {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            z-index: 100;
-            font-size: 11px;
-            color: #666;
-        }
-        
-        .checkbox-group {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 8px;
+            margin-left: 10px;
+            flex: 1;
         }
         
-        input[type="checkbox"] {
-            transform: scale(1.2);
-            accent-color: #00ffff;
+        .controls input[type="range"] {
+            flex: 1;
+            min-width: 80px;
+        }
+        
+        .controls input[type="number"] {
+            width: 50px;
+            padding: 2px 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            color: white;
+            font-size: 11px;
+        }
+        
+        .controls select {
+            margin-left: 10px;
+            padding: 2px 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            color: white;
+            font-size: 11px;
+        }
+        
+        .controls .section {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .controls .section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            color: #4CAF50;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        /* Custom scrollbar */
+        .controls::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .controls::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        
+        .controls::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+        
+        .rotation-btn {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+            color: white;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        
+        .rotation-btn:hover {
+            background: rgba(76, 175, 80, 0.4);
+            border-color: rgba(76, 175, 80, 0.8);
+        }
+        
+        .rotation-btn:active {
+            background: rgba(76, 175, 80, 0.6);
+        }
+        
+        .rotation-btn:disabled {
+            background: rgba(100, 100, 100, 0.2);
+            border-color: rgba(100, 100, 100, 0.3);
+            color: rgba(255, 255, 255, 0.5);
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
-    <div id="container">
-        <div id="controls">
-            <div class="control-group">
-                <label>Processing Pattern</label>
-                <select id="processingPattern">
-                    <option value="swarm">Swarm Intelligence</option>
-                    <option value="neural">Neural Propagation</option>
-                    <option value="field">Force Field Dynamics</option>
-                    <option value="sync">Synchronization</option>
-                    <option value="cellular">Cellular Automata</option>
-                    <option value="percolation">Percolation Network</option>
-                    <option value="cascade">Cascade Effects</option>
-                    <option value="interference">Wave Interference</option>
-                </select>
-            </div>
-            
-            <div class="control-group">
-                <label>Node Count</label>
-                <input type="range" id="nodeCount" min="50" max="500" value="200">
-                <div class="value-display" id="nodeCountValue">200</div>
-            </div>
-            
-            <div class="control-group">
-                <label>Connection Threshold</label>
-                <input type="range" id="connectionThreshold" min="5" max="30" value="15">
-                <div class="value-display" id="connectionThresholdValue">15</div>
-            </div>
-            
-            <div class="control-group">
-                <label>Processing Speed</label>
-                <input type="range" id="processingSpeed" min="0.1" max="3" step="0.1" value="1">
-                <div class="value-display" id="processingSpeedValue">1.0</div>
-            </div>
-            
-            <div class="control-group">
-                <label>Field Strength</label>
-                <input type="range" id="fieldStrength" min="0.5" max="5" step="0.1" value="2">
-                <div class="value-display" id="fieldStrengthValue">2.0</div>
-            </div>
-            
-            <div class="control-group">
-                <label>Activation Decay</label>
-                <input type="range" id="activationDecay" min="0.9" max="0.99" step="0.01" value="0.95">
-                <div class="value-display" id="activationDecayValue">0.95</div>
-            </div>
-            
-            <div class="control-group">
-                <label>Space Distribution</label>
-                <input type="range" id="spaceSize" min="20" max="80" value="50">
-                <div class="value-display" id="spaceSizeValue">50</div>
-            </div>
-            
-            <div class="control-group">
-                <label>Node Size</label>
-                <input type="range" id="nodeSize" min="0.5" max="3" step="0.1" value="1">
-                <div class="value-display" id="nodeSizeValue">1.0</div>
-            </div>
-            
-            <div class="control-group">
-                <label>Node Color</label>
-                <input type="color" id="nodeColor" value="#000000">
-            </div>
-            
-            <div class="control-group">
-                <label>Background Color</label>
-                <input type="color" id="bgColor" value="#ffffff">
-            </div>
-            
-            <div class="checkbox-group">
-                <input type="checkbox" id="showConnections" checked>
-                <label for="showConnections">Show Connections</label>
-            </div>
-            
-            <div class="button-group">
-                <button id="playPause" class="active">Pause</button>
-                <button id="reset">Reset</button>
-            </div>
-               <div><a href="./lines.html">lines</a></div>
+    <div class="controls">
+        <div class="section">
+            <div class="section-title">Wave Properties</div>
+            <label>Wave Height:
+                <div class="control-group">
+                    <input type="range" id="amplitude" min="0.1" max="15" step="0.1" value="2">
+                    <input type="number" id="amplitudeNum" min="0.1" max="15" step="0.1" value="2">
+                </div>
+            </label>
+            <label>Wave Speed:
+                <div class="control-group">
+                    <input type="range" id="speed" min="0.1" max="3" step="0.1" value="0.8">
+                    <input type="number" id="speedNum" min="0.1" max="3" step="0.1" value="0.8">
+                </div>
+            </label>
+            <label>Wave Scale:
+                <div class="control-group">
+                    <input type="range" id="waveScale" min="0.2" max="5" step="0.1" value="1">
+                    <input type="number" id="waveScaleNum" min="0.2" max="5" step="0.1" value="1">
+                </div>
+            </label>
         </div>
         
-        <div id="stats">
-            <div>FPS: <span id="fps">60</span></div>
-            <div>Nodes: <span id="nodeCountStat">200</span></div>
-            <div>Connections: <span id="connectionCount">0</span></div>
-            <div>Pattern: <span id="currentPattern">Swarm Intelligence</span></div>
+        <div class="section">
+            <div class="section-title">Grid Settings</div>
+            <label>Grid Density:
+                <div class="control-group">
+                    <input type="range" id="gridSize" min="30" max="80" step="5" value="50">
+                    <input type="number" id="gridSizeNum" min="30" max="80" step="5" value="50">
+                </div>
+            </label>
+            <label>Dot Size:
+                <div class="control-group">
+                    <input type="range" id="dotSize" min="0.5" max="4" step="0.1" value="1.2">
+                    <input type="number" id="dotSizeNum" min="0.5" max="4" step="0.1" value="1.2">
+                </div>
+            </label>
         </div>
-
+        
+        <div class="section">
+            <div class="section-title">Displacement Mode</div>
+            <label>Type: 
+                <select id="displacementType">
+                    <option value="wave">Sine Waves</option>
+                    <option value="perlin">Perlin Noise</option>
+                    <option value="quantizedWave">Quantized Waves</option>
+                    <option value="quantizedPerlin">Quantized Perlin</option>
+                    <option value="radar">Radar Circles</option>
+                    <option value="grid">Grid Pattern</option>
+                    <option value="frequencyBands">Frequency Bands</option>
+                    <option value="spiral">Spiral Wave</option>
+                    <option value="checkerboard">Checkerboard</option>
+                    <option value="ripples">Multi Ripples</option>
+                    <option value="fractal">Fractal Noise</option>
+                    <option value="diagonal">Diagonal Waves</option>
+                </select>
+            </label>
+            <label>Quantization Steps:
+                <div class="control-group">
+                    <input type="range" id="quantSteps" min="2" max="20" step="1" value="8">
+                    <input type="number" id="quantStepsNum" min="2" max="20" step="1" value="8">
+                </div>
+            </label>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">Camera</div>
+            <label>Zoom:
+                <div class="control-group">
+                    <input type="range" id="zoom" min="5" max="25" step="1" value="15">
+                    <input type="number" id="zoomNum" min="5" max="25" step="1" value="15">
+                </div>
+            </label>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">Auto Rotation</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                <button class="rotation-btn" onclick="rotateCamera('x', 90)">X +90°</button>
+                <button class="rotation-btn" onclick="rotateCamera('x', -90)">X -90°</button>
+                <button class="rotation-btn" onclick="rotateCamera('y', 90)">Y +90°</button>
+                <button class="rotation-btn" onclick="rotateCamera('y', -90)">Y -90°</button>
+                <button class="rotation-btn" onclick="rotateCamera('z', 90)">Z +90°</button>
+                <button class="rotation-btn" onclick="rotateCamera('z', -90)">Z -90°</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                <button class="rotation-btn" onclick="rotateCamera('x', 180)">X 180°</button>
+                <button class="rotation-btn" onclick="rotateCamera('y', 180)">Y 180°</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 10px;">
+                <button class="rotation-btn" onclick="rotateCamera('orbit', 360)">Orbit 360°</button>
+                <button class="rotation-btn" onclick="resetCamera()">Reset View</button>
+            </div>
+            <label>Rotation Speed:
+                <div class="control-group">
+                    <input type="range" id="rotationSpeed" min="0.5" max="3" step="0.1" value="1.5">
+                    <input type="number" id="rotationSpeedNum" min="0.5" max="3" step="0.1" value="1.5">
+                </div>
+            </label>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        let scene, camera, renderer, nodes = [], connections = [];
-        let isPlaying = true;
-        let animationId;
-        let frameCount = 0;
-        let lastFPSUpdate = 0;
-        let connectionLines = new THREE.Group();
-        
-        // Parameters
-        let params = {
-            processingPattern: 'swarm',
-            nodeCount: 200,
-            connectionThreshold: 15,
-            processingSpeed: 1,
-            fieldStrength: 2,
-            activationDecay: 0.95,
-            spaceSize: 50,
-            nodeSize: 1,
-            nodeColor: '#000000',
-            bgColor: '#ffffff',
-            showConnections: true
-        };
-        
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(params.bgColor);
-            document.getElementById('container').appendChild(renderer.domElement);
+        // Simple mouse controls for orthographic camera
+        class SimpleControls {
+            constructor(camera, domElement) {
+                this.camera = camera;
+                this.domElement = domElement;
+                this.enabled = true;
+                
+                this.rotationX = -0.3;
+                this.rotationY = 0;
+                this.isDragging = false;
+                this.previousMousePosition = { x: 0, y: 0 };
+                
+                // Animation properties
+                this.isAnimating = false;
+                this.animationStart = 0;
+                this.animationDuration = 1000; // 1 second default
+                this.startRotation = { x: 0, y: 0 };
+                this.targetRotation = { x: 0, y: 0 };
+                this.animationType = 'rotate';
+                
+                this.init();
+                this.updateCamera();
+            }
             
-            camera.position.set(60, 40, 60);
-            camera.lookAt(0, 0, 0);
+            init() {
+                this.domElement.addEventListener('mousedown', this.onMouseDown.bind(this), false);
+                this.domElement.addEventListener('mousemove', this.onMouseMove.bind(this), false);
+                this.domElement.addEventListener('mouseup', this.onMouseUp.bind(this), false);
+                this.domElement.addEventListener('wheel', this.onWheel.bind(this), false);
+            }
             
-            scene.add(connectionLines);
+            onMouseDown(event) {
+                if (!this.enabled || this.isAnimating) return;
+                this.isDragging = true;
+                this.previousMousePosition = { x: event.clientX, y: event.clientY };
+            }
             
-            createNodes();
-            setupControls();
-            animate();
+            onMouseMove(event) {
+                if (!this.enabled || !this.isDragging || this.isAnimating) return;
+                
+                const deltaX = event.clientX - this.previousMousePosition.x;
+                const deltaY = event.clientY - this.previousMousePosition.y;
+                
+                this.rotationY += deltaX * 0.005;
+                this.rotationX += deltaY * 0.005;
+                
+                // Limit rotation
+                this.rotationX = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.rotationX));
+                
+                this.previousMousePosition = { x: event.clientX, y: event.clientY };
+                this.updateCamera();
+            }
+            
+            onMouseUp() {
+                this.isDragging = false;
+            }
+            
+            onWheel(event) {
+                if (!this.enabled || this.isAnimating) return;
+                event.preventDefault();
+                
+                const zoomSlider = document.getElementById('zoom');
+                const zoomNum = document.getElementById('zoomNum');
+                let currentZoom = parseFloat(zoomSlider.value);
+                currentZoom += event.deltaY > 0 ? 1 : -1;
+                currentZoom = Math.max(5, Math.min(25, currentZoom));
+                zoomSlider.value = currentZoom;
+                zoomNum.value = currentZoom;
+                
+                this.updateZoom(currentZoom);
+            }
+            
+            updateCamera() {
+                const distance = 20;
+                this.camera.position.x = Math.sin(this.rotationY) * Math.cos(this.rotationX) * distance;
+                this.camera.position.y = Math.sin(this.rotationX) * distance;
+                this.camera.position.z = Math.cos(this.rotationY) * Math.cos(this.rotationX) * distance;
+                this.camera.lookAt(0, 0, 0);
+            }
+            
+            updateZoom(zoom) {
+                this.camera.left = -zoom;
+                this.camera.right = zoom;
+                this.camera.top = zoom;
+                this.camera.bottom = -zoom;
+                this.camera.updateProjectionMatrix();
+            }
+            
+            // Smooth rotation animation
+            animateRotation(axis, degrees) {
+                if (this.isAnimating) return;
+                
+                this.isAnimating = true;
+                this.animationStart = Date.now();
+                this.startRotation = { x: this.rotationX, y: this.rotationY };
+                
+                const radians = (degrees * Math.PI) / 180;
+                
+                // Calculate target rotation based on axis
+                switch (axis) {
+                    case 'x':
+                        this.targetRotation = {
+                            x: this.rotationX + radians,
+                            y: this.rotationY
+                        };
+                        break;
+                    case 'y':
+                        this.targetRotation = {
+                            x: this.rotationX,
+                            y: this.rotationY + radians
+                        };
+                        break;
+                    case 'z':
+                        // Z rotation affects both X and Y to create a roll effect
+                        this.targetRotation = {
+                            x: this.rotationX + radians * 0.3,
+                            y: this.rotationY + radians
+                        };
+                        break;
+                    case 'orbit':
+                        this.targetRotation = {
+                            x: this.rotationX,
+                            y: this.rotationY + radians
+                        };
+                        this.animationType = 'orbit';
+                        break;
+                }
+                
+                // Clamp target rotation
+                this.targetRotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.targetRotation.x));
+                
+                // Set animation duration based on rotation speed
+                const rotationSpeed = parseFloat(document.getElementById('rotationSpeed').value);
+                this.animationDuration = (Math.abs(degrees) / 90) * (1000 / rotationSpeed);
+                
+                this.updateButtons(true);
+            }
+            
+            // Update animation frame
+            updateAnimation() {
+                if (!this.isAnimating) return;
+                
+                const elapsed = Date.now() - this.animationStart;
+                const progress = Math.min(elapsed / this.animationDuration, 1);
+                
+                // Smooth easing function
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                
+                // Interpolate rotation
+                this.rotationX = this.startRotation.x + (this.targetRotation.x - this.startRotation.x) * easeProgress;
+                this.rotationY = this.startRotation.y + (this.targetRotation.y - this.startRotation.y) * easeProgress;
+                
+                this.updateCamera();
+                
+                if (progress >= 1) {
+                    this.isAnimating = false;
+                    this.animationType = 'rotate';
+                    this.updateButtons(false);
+                }
+            }
+            
+            // Reset to default view
+            resetView() {
+                if (this.isAnimating) return;
+                
+                this.isAnimating = true;
+                this.animationStart = Date.now();
+                this.startRotation = { x: this.rotationX, y: this.rotationY };
+                this.targetRotation = { x: -0.3, y: 0 };
+                
+                const rotationSpeed = parseFloat(document.getElementById('rotationSpeed').value);
+                this.animationDuration = 1000 / rotationSpeed;
+                
+                this.updateButtons(true);
+            }
+            
+            // Update button states
+            updateButtons(disabled) {
+                const buttons = document.querySelectorAll('.rotation-btn');
+                buttons.forEach(btn => btn.disabled = disabled);
+            }
         }
+
+        // Simplified circle texture
+        function createCircleTexture() {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 32;
+            canvas.height = 32;
+
+            const center = 16;
+            const radius = 14;
+
+            context.clearRect(0, 0, 32, 32);
+            
+            // Solid white circle
+            context.fillStyle = 'white';
+            context.beginPath();
+            context.arc(center, center, radius, 0, 2 * Math.PI);
+            context.fill();
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // Scene setup with orthographic camera
+        const scene = new THREE.Scene();
+        const aspect = window.innerWidth / window.innerHeight;
+        const camera = new THREE.OrthographicCamera(-15 * aspect, 15 * aspect, 15, -15, 0.1, 100);
         
-        class ProcessingNode {
-            constructor(x, y, z) {
-                this.position = new THREE.Vector3(x, y, z);
-                this.velocity = new THREE.Vector3(
-                    (Math.random() - 0.5) * 0.1,
-                    (Math.random() - 0.5) * 0.1,
-                    (Math.random() - 0.5) * 0.1
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000);
+        document.body.appendChild(renderer.domElement);
+
+        // Variables
+        let gridSize = 50;
+        let spacing = 0.5;
+        let amplitude = 2;
+        let speed = 0.8;
+        let waveScale = 1;
+        let quantSteps = 8;
+        let dotSize = 1.2;
+        let time = 0;
+        let points = [];
+        let geometry, material, pointCloud;
+        let displacementType = 'wave';
+
+        const circleTexture = createCircleTexture();
+
+        // Perlin noise implementation
+        class PerlinNoise {
+            constructor() {
+                this.permutation = [];
+                this.p = [];
+                
+                // Initialize permutation table
+                for (let i = 0; i < 256; i++) {
+                    this.permutation[i] = i;
+                }
+                
+                // Shuffle the permutation table
+                for (let i = 255; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [this.permutation[i], this.permutation[j]] = [this.permutation[j], this.permutation[i]];
+                }
+                
+                // Duplicate the permutation table
+                for (let i = 0; i < 512; i++) {
+                    this.p[i] = this.permutation[i % 256];
+                }
+            }
+            
+            fade(t) {
+                return t * t * t * (t * (t * 6 - 15) + 10);
+            }
+            
+            lerp(t, a, b) {
+                return a + t * (b - a);
+            }
+            
+            grad(hash, x, y, z) {
+                const h = hash & 15;
+                const u = h < 8 ? x : y;
+                const v = h < 4 ? y : h === 12 || h === 14 ? x : z;
+                return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+            }
+            
+            noise(x, y, z) {
+                const X = Math.floor(x) & 255;
+                const Y = Math.floor(y) & 255;
+                const Z = Math.floor(z) & 255;
+                
+                x -= Math.floor(x);
+                y -= Math.floor(y);
+                z -= Math.floor(z);
+                
+                const u = this.fade(x);
+                const v = this.fade(y);
+                const w = this.fade(z);
+                
+                const A = this.p[X] + Y;
+                const AA = this.p[A] + Z;
+                const AB = this.p[A + 1] + Z;
+                const B = this.p[X + 1] + Y;
+                const BA = this.p[B] + Z;
+                const BB = this.p[B + 1] + Z;
+                
+                return this.lerp(w,
+                    this.lerp(v,
+                        this.lerp(u, this.grad(this.p[AA], x, y, z), this.grad(this.p[BA], x - 1, y, z)),
+                        this.lerp(u, this.grad(this.p[AB], x, y - 1, z), this.grad(this.p[BB], x - 1, y - 1, z))
+                    ),
+                    this.lerp(v,
+                        this.lerp(u, this.grad(this.p[AA + 1], x, y, z - 1), this.grad(this.p[BA + 1], x - 1, y, z - 1)),
+                        this.lerp(u, this.grad(this.p[AB + 1], x, y - 1, z - 1), this.grad(this.p[BB + 1], x - 1, y - 1, z - 1))
+                    )
                 );
-                this.activation = Math.random();
-                this.targetActivation = 0;
-                this.connections = [];
-                this.phase = Math.random() * Math.PI * 2;
-                this.frequency = 0.5 + Math.random() * 2;
-                this.lastActivationTime = 0;
-                
-                // Create visual representation
-                const geometry = new THREE.SphereGeometry(0.2, 8, 8);
-                const material = new THREE.MeshBasicMaterial({ color: params.nodeColor });
-                this.mesh = new THREE.Mesh(geometry, material);
-                this.mesh.position.copy(this.position);
-                scene.add(this.mesh);
             }
             
-            update(time, allNodes) {
-                this.updatePattern(time, allNodes);
-                this.updateVisuals();
-                this.mesh.position.copy(this.position);
-            }
-            
-            updatePattern(time, allNodes) {
-                const t = time * 0.001 * params.processingSpeed;
+            // Octave noise for more natural-looking displacement
+            octaveNoise(x, y, z, octaves = 3, persistence = 0.5, lacunarity = 2.0) {
+                let value = 0;
+                let amplitude = 1;
+                let frequency = 1;
+                let maxValue = 0;
                 
-                switch (params.processingPattern) {
-                    case 'swarm':
-                        this.updateSwarm(allNodes);
-                        break;
-                    case 'neural':
-                        this.updateNeural(allNodes, t);
-                        break;
-                    case 'field':
-                        this.updateField(allNodes, t);
-                        break;
-                    case 'sync':
-                        this.updateSync(allNodes, t);
-                        break;
-                    case 'cellular':
-                        this.updateCellular(allNodes);
-                        break;
-                    case 'percolation':
-                        this.updatePercolation(allNodes, t);
-                        break;
-                    case 'cascade':
-                        this.updateCascade(allNodes, t);
-                        break;
-                    case 'interference':
-                        this.updateInterference(allNodes, t);
-                        break;
+                for (let i = 0; i < octaves; i++) {
+                    value += this.noise(x * frequency, y * frequency, z * frequency) * amplitude;
+                    maxValue += amplitude;
+                    amplitude *= persistence;
+                    frequency *= lacunarity;
                 }
                 
-                // Apply activation decay
-                this.activation *= params.activationDecay;
-                this.activation = Math.max(0, Math.min(1, this.activation));
-                
-                // Update position with constraints
-                this.position.add(this.velocity);
-                this.constrainToSpace();
-            }
-            
-            updateSwarm(allNodes) {
-                const separationForce = new THREE.Vector3();
-                const alignmentForce = new THREE.Vector3();
-                const cohesionForce = new THREE.Vector3();
-                let neighbors = 0;
-                
-                allNodes.forEach(other => {
-                    if (other === this) return;
-                    const distance = this.position.distanceTo(other.position);
-                    
-                    if (distance < params.connectionThreshold) {
-                        neighbors++;
-                        
-                        // Separation
-                        const diff = new THREE.Vector3().subVectors(this.position, other.position);
-                        diff.normalize().divideScalar(distance);
-                        separationForce.add(diff);
-                        
-                        // Alignment
-                        alignmentForce.add(other.velocity);
-                        
-                        // Cohesion
-                        cohesionForce.add(other.position);
-                    }
-                });
-                
-                if (neighbors > 0) {
-                    alignmentForce.divideScalar(neighbors);
-                    cohesionForce.divideScalar(neighbors).sub(this.position);
-                    
-                    this.velocity.add(separationForce.multiplyScalar(0.01));
-                    this.velocity.add(alignmentForce.multiplyScalar(0.005));
-                    this.velocity.add(cohesionForce.multiplyScalar(0.005));
-                }
-                
-                this.velocity.multiplyScalar(0.99); // Damping
-            }
-            
-            updateNeural(allNodes, t) {
-                let inputSum = 0;
-                this.connections.forEach(connection => {
-                    inputSum += connection.node.activation * connection.weight;
-                });
-                
-                // Sigmoid activation function
-                this.targetActivation = 1 / (1 + Math.exp(-inputSum + 0.5));
-                this.activation += (this.targetActivation - this.activation) * 0.1;
-                
-                // Slight movement based on activation
-                this.velocity.add(new THREE.Vector3(
-                    Math.sin(t + this.phase) * this.activation * 0.01,
-                    Math.cos(t + this.phase) * this.activation * 0.01,
-                    Math.sin(t * 1.5 + this.phase) * this.activation * 0.01
-                ));
-            }
-            
-            updateField(allNodes, t) {
-                const force = new THREE.Vector3();
-                
-                allNodes.forEach(other => {
-                    if (other === this) return;
-                    const distance = this.position.distanceTo(other.position);
-                    if (distance > 0 && distance < params.connectionThreshold * 2) {
-                        const direction = new THREE.Vector3().subVectors(this.position, other.position);
-                        direction.normalize();
-                        
-                        // Inverse square law with activation influence
-                        const strength = params.fieldStrength * other.activation / (distance * distance);
-                        force.add(direction.multiplyScalar(strength * 0.01));
-                    }
-                });
-                
-                this.velocity.add(force);
-                this.velocity.multiplyScalar(0.98);
-            }
-            
-            updateSync(allNodes, t) {
-                let avgPhase = 0;
-                let neighbors = 0;
-                
-                allNodes.forEach(other => {
-                    if (other === this) return;
-                    const distance = this.position.distanceTo(other.position);
-                    if (distance < params.connectionThreshold) {
-                        avgPhase += other.phase;
-                        neighbors++;
-                    }
-                });
-                
-                if (neighbors > 0) {
-                    avgPhase /= neighbors;
-                    this.phase += (avgPhase - this.phase) * 0.05; // Sync rate
-                }
-                
-                this.phase += this.frequency * 0.02;
-                this.activation = (Math.sin(this.phase) + 1) / 2;
-                
-                // Movement based on phase
-                this.velocity.add(new THREE.Vector3(
-                    Math.cos(this.phase) * 0.005,
-                    Math.sin(this.phase * 1.3) * 0.005,
-                    Math.sin(this.phase * 0.7) * 0.005
-                ));
-            }
-            
-            updateCellular(allNodes) {
-                let activeNeighbors = 0;
-                let totalNeighbors = 0;
-                
-                allNodes.forEach(other => {
-                    if (other === this) return;
-                    const distance = this.position.distanceTo(other.position);
-                    if (distance < params.connectionThreshold) {
-                        totalNeighbors++;
-                        if (other.activation > 0.5) activeNeighbors++;
-                    }
-                });
-                
-                // Conway's Game of Life-like rules, adapted for continuous values
-                if (this.activation > 0.5) {
-                    this.activation = (activeNeighbors >= 2 && activeNeighbors <= 3) ? 0.9 : 0.1;
-                } else {
-                    this.activation = (activeNeighbors === 3) ? 0.9 : this.activation * 0.95;
-                }
-            }
-            
-            updatePercolation(allNodes, t) {
-                const threshold = Math.sin(t * 0.5) * 0.3 + 0.5;
-                let connectedToActive = false;
-                
-                allNodes.forEach(other => {
-                    if (other === this) return;
-                    const distance = this.position.distanceTo(other.position);
-                    if (distance < params.connectionThreshold && other.activation > threshold) {
-                        connectedToActive = true;
-                    }
-                });
-                
-                if (connectedToActive || Math.random() < 0.001) {
-                    this.activation = Math.min(1, this.activation + 0.1);
-                } else {
-                    this.activation *= 0.99;
-                }
-            }
-            
-            updateCascade(allNodes, t) {
-                let activationInput = 0;
-                
-                allNodes.forEach(other => {
-                    if (other === this) return;
-                    const distance = this.position.distanceTo(other.position);
-                    if (distance < params.connectionThreshold) {
-                        const influence = other.activation * (1 / (distance + 1));
-                        activationInput += influence;
-                    }
-                });
-                
-                if (activationInput > 0.5 && this.activation < 0.3) {
-                    this.activation = 0.9;
-                    this.lastActivationTime = t;
-                }
-                
-                // Pulse movement when activated
-                if (t - this.lastActivationTime < 1) {
-                    const pulseStrength = 1 - (t - this.lastActivationTime);
-                    this.velocity.add(new THREE.Vector3(
-                        (Math.random() - 0.5) * pulseStrength * 0.02,
-                        (Math.random() - 0.5) * pulseStrength * 0.02,
-                        (Math.random() - 0.5) * pulseStrength * 0.02
-                    ));
-                }
-            }
-            
-            updateInterference(allNodes, t) {
-                let waveSum = 0;
-                
-                allNodes.forEach(other => {
-                    if (other === this) return;
-                    const distance = this.position.distanceTo(other.position);
-                    const wave = Math.sin(distance * 0.2 - t * 2) * other.activation;
-                    waveSum += wave / (distance + 1);
-                });
-                
-                this.activation = (waveSum + 1) / 2;
-                this.activation = Math.max(0, Math.min(1, this.activation));
-                
-                // Move based on wave gradients
-                const gradient = new THREE.Vector3();
-                allNodes.forEach(other => {
-                    if (other === this) return;
-                    const distance = this.position.distanceTo(other.position);
-                    if (distance > 0) {
-                        const direction = new THREE.Vector3().subVectors(this.position, other.position);
-                        direction.normalize();
-                        const waveGrad = Math.cos(distance * 0.2 - t * 2) * other.activation * 0.2;
-                        gradient.add(direction.multiplyScalar(waveGrad / (distance + 1)));
-                    }
-                });
-                
-                this.velocity.add(gradient.multiplyScalar(0.001));
-            }
-            
-            constrainToSpace() {
-                const bounds = params.spaceSize;
-                if (this.position.x > bounds) { this.position.x = bounds; this.velocity.x *= -0.5; }
-                if (this.position.x < -bounds) { this.position.x = -bounds; this.velocity.x *= -0.5; }
-                if (this.position.y > bounds) { this.position.y = bounds; this.velocity.y *= -0.5; }
-                if (this.position.y < -bounds) { this.position.y = -bounds; this.velocity.y *= -0.5; }
-                if (this.position.z > bounds) { this.position.z = bounds; this.velocity.z *= -0.5; }
-                if (this.position.z < -bounds) { this.position.z = -bounds; this.velocity.z *= -0.5; }
-            }
-            
-            updateVisuals() {
-                // Color based on activation
-                const baseColor = new THREE.Color(params.nodeColor);
-                const intensity = this.activation;
-                this.mesh.material.color.setRGB(
-                    baseColor.r * intensity,
-                    baseColor.g * intensity,
-                    baseColor.b * intensity
-                );
-                
-                // Size based on activation
-                const scale = params.nodeSize * (0.5 + this.activation * 0.5);
-                this.mesh.scale.setScalar(scale);
+                return value / maxValue;
             }
         }
         
-        function createNodes() {
-            // Clear existing nodes
-            nodes.forEach(node => scene.remove(node.mesh));
-            nodes = [];
+        // Create Perlin noise instance
+        const perlin = new PerlinNoise();
+
+        // Displacement functions
+        function simpleWave(x, y, time) {
+            const freq1 = 0.15 * waveScale;
+            const freq2 = 0.08 * waveScale;
+            const timeOffset = time * speed;
             
-            for (let i = 0; i < params.nodeCount; i++) {
-                const x = (Math.random() - 0.5) * params.spaceSize * 2;
-                const y = (Math.random() - 0.5) * params.spaceSize * 2;
-                const z = (Math.random() - 0.5) * params.spaceSize * 2;
-                
-                const node = new ProcessingNode(x, y, z);
-                nodes.push(node);
+            const wave1 = Math.sin(x * freq1 + timeOffset) * Math.cos(y * freq1 + timeOffset * 0.7);
+            const wave2 = Math.sin(x * freq2 - timeOffset * 0.5) * Math.sin(y * freq2 + timeOffset * 0.3);
+            
+            return (wave1 + wave2 * 0.5) * amplitude;
+        }
+
+        function perlinDisplacement(x, y, time) {
+            const freq = 0.02 * waveScale;
+            const timeScale = time * speed * 0.1;
+            
+            return perlin.octaveNoise(x * freq, y * freq, timeScale, 3, 0.5, 2.0) * amplitude * 2;
+        }
+
+        // Quantization helper function
+        function quantizeValue(value, steps) {
+            return Math.round(value * steps) / steps;
+        }
+
+        // Quantized displacement functions
+        function quantizedWave(x, y, time) {
+            const waveValue = simpleWave(x, y, time);
+            return quantizeValue(waveValue, quantSteps);
+        }
+
+        function quantizedPerlin(x, y, time) {
+            const perlinValue = perlinDisplacement(x, y, time);
+            return quantizeValue(perlinValue, quantSteps);
+        }
+
+        // Technical radar circles pattern
+        function radarPattern(x, y, time) {
+            const centerX = 0;
+            const centerY = 0;
+            const distance = Math.sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
+            const freq = 0.3 * waveScale;
+            const timeOffset = time * speed;
+            
+            const wave = Math.sin(distance * freq - timeOffset);
+            return wave * amplitude;
+        }
+
+        // Grid pattern - creates a 3D grid of peaks and valleys
+        function gridPattern(x, y, time) {
+            const freq = 0.4 * waveScale;
+            const timeOffset = time * speed;
+            
+            const gridX = Math.sin(x * freq + timeOffset);
+            const gridY = Math.sin(y * freq + timeOffset * 0.7);
+            
+            return (gridX * gridY) * amplitude;
+        }
+
+        // Frequency bands - horizontal bands like an audio visualizer
+        function frequencyBands(x, y, time) {
+            const bands = 8;
+            const bandHeight = 5;
+            const freq = 0.2 * waveScale;
+            const timeOffset = time * speed;
+            
+            const bandIndex = Math.floor((y + bandHeight * bands / 2) / bandHeight);
+            const bandCenter = (bandIndex * bandHeight) - (bandHeight * bands / 2) + bandHeight / 2;
+            const distanceFromCenter = Math.abs(y - bandCenter);
+            
+            if (distanceFromCenter < bandHeight / 2) {
+                const bandPhase = bandIndex * 0.5 + timeOffset;
+                const bandAmplitude = Math.sin(x * freq + bandPhase) * (1 - distanceFromCenter / (bandHeight / 2));
+                return bandAmplitude * amplitude;
             }
             
-            updateConnections();
-            document.getElementById('nodeCountStat').textContent = params.nodeCount;
+            return 0;
         }
-        
-        function updateConnections() {
-            // Clear existing connections
-            connectionLines.clear();
+
+        // Spiral wave pattern
+        function spiralPattern(x, y, time) {
+            const distance = Math.sqrt(x * x + y * y);
+            const angle = Math.atan2(y, x);
+            const spiralFreq = 0.3 * waveScale;
+            const timeOffset = time * speed;
             
-            if (!params.showConnections) return;
+            const spiral = Math.sin(distance * spiralFreq - angle * 3 + timeOffset);
+            return spiral * amplitude;
+        }
+
+        // Checkerboard pattern with animated height
+        function checkerboardPattern(x, y, time) {
+            const cellSize = 2 / waveScale;
+            const timeOffset = time * speed;
             
-            let connectionCount = 0;
-            const material = new THREE.LineBasicMaterial({ 
-                color: 0x333333, 
-                transparent: true, 
-                opacity: 0.3 
+            const cellX = Math.floor(x / cellSize);
+            const cellY = Math.floor(y / cellSize);
+            const isEven = (cellX + cellY) % 2 === 0;
+            
+            const wave = Math.sin(timeOffset * 2);
+            return (isEven ? wave : -wave) * amplitude;
+        }
+
+        // Multiple ripples from different points
+        function multiRipples(x, y, time) {
+            const timeOffset = time * speed;
+            const freq = 0.4 * waveScale;
+            
+            // Multiple ripple sources
+            const sources = [
+                { x: -5, y: -5, phase: 0 },
+                { x: 5, y: 5, phase: Math.PI },
+                { x: -5, y: 5, phase: Math.PI / 2 },
+                { x: 5, y: -5, phase: 3 * Math.PI / 2 }
+            ];
+            
+            let totalWave = 0;
+            sources.forEach(source => {
+                const distance = Math.sqrt((x - source.x) * (x - source.x) + (y - source.y) * (y - source.y));
+                const wave = Math.sin(distance * freq - timeOffset + source.phase);
+                totalWave += wave / sources.length;
             });
             
-            for (let i = 0; i < nodes.length; i++) {
-                nodes[i].connections = [];
-                for (let j = i + 1; j < nodes.length; j++) {
-                    const distance = nodes[i].position.distanceTo(nodes[j].position);
-                    if (distance < params.connectionThreshold) {
-                        connectionCount++;
-                        
-                        // Add to connections for processing
-                        nodes[i].connections.push({
-                            node: nodes[j],
-                            weight: 1 / (distance + 1)
-                        });
-                        nodes[j].connections.push({
-                            node: nodes[i],
-                            weight: 1 / (distance + 1)
-                        });
-                        
-                        // Create visual line
-                        const geometry = new THREE.BufferGeometry().setFromPoints([
-                            nodes[i].position,
-                            nodes[j].position
-                        ]);
-                        const line = new THREE.Line(geometry, material);
-                        connectionLines.add(line);
-                    }
+            return totalWave * amplitude;
+        }
+
+        // Fractal-like noise pattern
+        function fractalPattern(x, y, time) {
+            const timeOffset = time * speed * 0.1;
+            const baseFreq = 0.05 * waveScale;
+            
+            let total = 0;
+            let amplitude_local = 1;
+            let frequency = baseFreq;
+            
+            for (let i = 0; i < 4; i++) {
+                total += perlin.noise(x * frequency, y * frequency, timeOffset) * amplitude_local;
+                amplitude_local *= 0.5;
+                frequency *= 2;
+            }
+            
+            return total * amplitude;
+        }
+
+        // Diagonal wave pattern
+        function diagonalWaves(x, y, time) {
+            const freq = 0.2 * waveScale;
+            const timeOffset = time * speed;
+            
+            const diagonal1 = Math.sin((x + y) * freq + timeOffset);
+            const diagonal2 = Math.sin((x - y) * freq + timeOffset * 0.7);
+            
+            return (diagonal1 + diagonal2 * 0.5) * amplitude;
+        }
+
+        function getDisplacement(x, y, time) {
+            switch (displacementType) {
+                case 'perlin':
+                    return perlinDisplacement(x, y, time);
+                case 'quantizedWave':
+                    return quantizedWave(x, y, time);
+                case 'quantizedPerlin':
+                    return quantizedPerlin(x, y, time);
+                case 'radar':
+                    return radarPattern(x, y, time);
+                case 'grid':
+                    return gridPattern(x, y, time);
+                case 'frequencyBands':
+                    return frequencyBands(x, y, time);
+                case 'spiral':
+                    return spiralPattern(x, y, time);
+                case 'checkerboard':
+                    return checkerboardPattern(x, y, time);
+                case 'ripples':
+                    return multiRipples(x, y, time);
+                case 'fractal':
+                    return fractalPattern(x, y, time);
+                case 'diagonal':
+                    return diagonalWaves(x, y, time);
+                default:
+                    return simpleWave(x, y, time);
+            }
+        }
+
+        function createDotMatrix() {
+            if (pointCloud) {
+                scene.remove(pointCloud);
+                geometry.dispose();
+                material.dispose();
+            }
+
+            points = [];
+            const positions = [];
+
+            for (let x = 0; x < gridSize; x++) {
+                for (let y = 0; y < gridSize; y++) {
+                    const worldX = (x - gridSize / 2) * spacing;
+                    const worldY = (y - gridSize / 2) * spacing;
+                    const worldZ = getDisplacement(worldX * 2, worldY * 2, time);
+
+                    positions.push(worldX, worldY, worldZ);
+                    points.push({ x: worldX, y: worldY });
                 }
             }
-            
-            document.getElementById('connectionCount').textContent = connectionCount;
+
+            geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+            material = new THREE.PointsMaterial({
+                size: dotSize,
+                map: circleTexture,
+                color: 0xffffff,
+                transparent: false,
+                sizeAttenuation: false // Keep dots same size regardless of distance
+            });
+
+            pointCloud = new THREE.Points(geometry, material);
+            scene.add(pointCloud);
         }
+
+        function updateDotMatrix() {
+            if (!geometry) return;
+
+            const positions = geometry.attributes.position.array;
+
+            for (let i = 0; i < points.length; i++) {
+                const point = points[i];
+                const newZ = getDisplacement(point.x * 2, point.y * 2, time);
+                positions[i * 3 + 2] = newZ;
+            }
+
+            geometry.attributes.position.needsUpdate = true;
+        }
+
+        // Camera setup and controls
+        camera.position.set(0, -10, 8);
+        camera.lookAt(0, 0, 0);
         
-        function animate(currentTime = 0) {
-            if (!isPlaying) return;
+        const controls = new SimpleControls(camera, renderer.domElement);
+
+        // Utility function to create synchronized control pairs
+        function createControlPair(sliderId, numberId, callback) {
+            const slider = document.getElementById(sliderId);
+            const numberInput = document.getElementById(numberId);
             
-            animationId = requestAnimationFrame(animate);
+            slider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                numberInput.value = value;
+                callback(value);
+            });
             
-            // FPS calculation
-            frameCount++;
-            if (currentTime - lastFPSUpdate > 1000) {
-                document.getElementById('fps').textContent = Math.round(frameCount * 1000 / (currentTime - lastFPSUpdate));
-                frameCount = 0;
-                lastFPSUpdate = currentTime;
-            }
+            numberInput.addEventListener('input', (e) => {
+                let value = parseFloat(e.target.value);
+                const min = parseFloat(numberInput.min);
+                const max = parseFloat(numberInput.max);
+                
+                // Clamp value to valid range
+                if (value < min) value = min;
+                if (value > max) value = max;
+                
+                numberInput.value = value;
+                slider.value = value;
+                callback(value);
+            });
             
-            // Update all nodes
-            nodes.forEach(node => node.update(currentTime, nodes));
+            // Handle blur event to ensure valid values
+            numberInput.addEventListener('blur', (e) => {
+                if (isNaN(parseFloat(e.target.value)) || e.target.value === '') {
+                    e.target.value = slider.value;
+                }
+            });
+        }
+
+        // Set up all control pairs
+        createControlPair('amplitude', 'amplitudeNum', (value) => {
+            amplitude = value;
+        });
+
+        createControlPair('speed', 'speedNum', (value) => {
+            speed = value;
+        });
+
+        createControlPair('waveScale', 'waveScaleNum', (value) => {
+            waveScale = value;
+        });
+
+        createControlPair('quantSteps', 'quantStepsNum', (value) => {
+            quantSteps = value;
+        });
+
+        createControlPair('gridSize', 'gridSizeNum', (value) => {
+            gridSize = parseInt(value);
+            createDotMatrix();
+        });
+
+        createControlPair('dotSize', 'dotSizeNum', (value) => {
+            dotSize = value;
+            if (material) material.size = dotSize;
+        });
+
+        createControlPair('zoom', 'zoomNum', (value) => {
+            controls.updateZoom(value);
+        });
+
+        createControlPair('rotationSpeed', 'rotationSpeedNum', (value) => {
+            // Rotation speed is used in the animation system
+        });
+
+        // Displacement type selector
+        document.getElementById('displacementType').addEventListener('change', (e) => {
+            displacementType = e.target.value;
+        });
+
+        // Global rotation functions
+        window.rotateCamera = function(axis, degrees) {
+            controls.animateRotation(axis, degrees);
+        };
+
+        window.resetCamera = function() {
+            controls.resetView();
+        };
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
             
-            // Update connections if they're visible
-            if (params.showConnections) {
-                updateConnections();
-            }
+            // Update camera animation
+            controls.updateAnimation();
             
-            // Camera movement
-            const radius = 80;
-            camera.position.x = Math.cos(currentTime * 0.0002) * radius;
-            camera.position.z = Math.sin(currentTime * 0.0002) * radius;
-            camera.lookAt(0, 0, 0);
-            
+            updateDotMatrix();
             renderer.render(scene, camera);
         }
-        
-        function setupControls() {
-            // Processing pattern selector
-            const patternSelect = document.getElementById('processingPattern');
-            patternSelect.addEventListener('change', (e) => {
-                params.processingPattern = e.target.value;
-                const patternNames = {
-                    'swarm': 'Swarm Intelligence',
-                    'neural': 'Neural Propagation',
-                    'field': 'Force Field Dynamics',
-                    'sync': 'Synchronization',
-                    'cellular': 'Cellular Automata',
-                    'percolation': 'Percolation Network',
-                    'cascade': 'Cascade Effects',
-                    'interference': 'Wave Interference'
-                };
-                document.getElementById('currentPattern').textContent = patternNames[params.processingPattern];
-            });
-            
-            // Node count
-            const nodeCountSlider = document.getElementById('nodeCount');
-            nodeCountSlider.addEventListener('input', (e) => {
-                params.nodeCount = parseInt(e.target.value);
-                document.getElementById('nodeCountValue').textContent = params.nodeCount;
-                createNodes();
-            });
-            
-            // Connection threshold
-            const connectionThresholdSlider = document.getElementById('connectionThreshold');
-            connectionThresholdSlider.addEventListener('input', (e) => {
-                params.connectionThreshold = parseFloat(e.target.value);
-                document.getElementById('connectionThresholdValue').textContent = params.connectionThreshold;
-                updateConnections();
-            });
-            
-            // Processing speed
-            const processingSpeedSlider = document.getElementById('processingSpeed');
-            processingSpeedSlider.addEventListener('input', (e) => {
-                params.processingSpeed = parseFloat(e.target.value);
-                document.getElementById('processingSpeedValue').textContent = params.processingSpeed.toFixed(1);
-            });
-            
-            // Field strength
-            const fieldStrengthSlider = document.getElementById('fieldStrength');
-            fieldStrengthSlider.addEventListener('input', (e) => {
-                params.fieldStrength = parseFloat(e.target.value);
-                document.getElementById('fieldStrengthValue').textContent = params.fieldStrength.toFixed(1);
-            });
-            
-            // Activation decay
-            const activationDecaySlider = document.getElementById('activationDecay');
-            activationDecaySlider.addEventListener('input', (e) => {
-                params.activationDecay = parseFloat(e.target.value);
-                document.getElementById('activationDecayValue').textContent = params.activationDecay.toFixed(2);
-            });
-            
-            // Space size
-            const spaceSizeSlider = document.getElementById('spaceSize');
-            spaceSizeSlider.addEventListener('input', (e) => {
-                params.spaceSize = parseFloat(e.target.value);
-                document.getElementById('spaceSizeValue').textContent = params.spaceSize;
-            });
-            
-            // Node size
-            const nodeSizeSlider = document.getElementById('nodeSize');
-            nodeSizeSlider.addEventListener('input', (e) => {
-                params.nodeSize = parseFloat(e.target.value);
-                document.getElementById('nodeSizeValue').textContent = params.nodeSize.toFixed(1);
-            });
-            
-            // Colors
-            const nodeColorPicker = document.getElementById('nodeColor');
-            nodeColorPicker.addEventListener('input', (e) => {
-                params.nodeColor = e.target.value;
-            });
-            
-            const bgColorPicker = document.getElementById('bgColor');
-            bgColorPicker.addEventListener('input', (e) => {
-                params.bgColor = e.target.value;
-                renderer.setClearColor(params.bgColor);
-                document.body.style.background = params.bgColor;
-            });
-            
-            // Show connections checkbox
-            const showConnectionsCheckbox = document.getElementById('showConnections');
-            showConnectionsCheckbox.addEventListener('change', (e) => {
-                params.showConnections = e.target.checked;
-                updateConnections();
-            });
-            
-            // Control buttons
-            const playPauseBtn = document.getElementById('playPause');
-            playPauseBtn.addEventListener('click', () => {
-                isPlaying = !isPlaying;
-                if (isPlaying) {
-                    playPauseBtn.textContent = 'Pause';
-                    playPauseBtn.classList.add('active');
-                    animate();
-                } else {
-                    playPauseBtn.textContent = 'Play';
-                    playPauseBtn.classList.remove('active');
-                    cancelAnimationFrame(animationId);
-                }
-            });
-            
-            const resetBtn = document.getElementById('reset');
-            resetBtn.addEventListener('click', () => {
-                createNodes();
-            });
-        }
-        
+
         // Handle window resize
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            const aspect = window.innerWidth / window.innerHeight;
+            const zoom = parseFloat(document.getElementById('zoom').value);
+            
+            camera.left = -zoom * aspect;
+            camera.right = zoom * aspect;
+            camera.top = zoom;
+            camera.bottom = -zoom;
             camera.updateProjectionMatrix();
+            
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-        
+
         // Initialize
-        init();
+        createDotMatrix();
+        animate();
     </script>
 </body>
 </html>
