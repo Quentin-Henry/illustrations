@@ -1,1524 +1,2316 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Water Dot Matrix - Enhanced Controls</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unity - Generative Illustrations</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #000;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-        }
-        
-        canvas {
-            display: block;
-        }
-        
-        .controls {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 12px;
-            backdrop-filter: blur(10px);
-            max-height: 85vh;
-            overflow-y: auto;
-            min-width: 220px;
-        }
-        
-        .controls label {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-left: 10px;
-            flex: 1;
-        }
-        
-        .controls input[type="range"] {
-            flex: 1;
-            min-width: 80px;
-        }
-        
-        .controls input[type="number"] {
-            width: 50px;
-            padding: 2px 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-            color: white;
-            font-size: 11px;
-        }
-        
-        .controls select {
-            margin-left: 10px;
-            padding: 2px 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-            color: white;
-            font-size: 11px;
-        }
-        
-        .controls .section {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .controls .section:last-child {
-            border-bottom: none;
-        }
-        
-        .section-title {
-            color: #4CAF50;
-            font-weight: bold;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-        
-        /* Custom scrollbar */
-        .controls::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .controls::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-        
-        .controls::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-        }
-        
-        .rotation-btn {
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid rgba(76, 175, 80, 0.5);
-            color: white;
-            padding: 6px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.2s ease;
-        }
-        
-        .rotation-btn:hover {
-            background: rgba(76, 175, 80, 0.4);
-            border-color: rgba(76, 175, 80, 0.8);
-        }
-        
-        .rotation-btn:active {
-            background: rgba(76, 175, 80, 0.6);
-        }
-        
-        .rotation-btn:disabled {
-            background: rgba(100, 100, 100, 0.2);
-            border-color: rgba(100, 100, 100, 0.3);
-            color: rgba(255, 255, 255, 0.5);
-            cursor: not-allowed;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      @font-face {
+        font-family: "protocall";
+        src: url("/fonts/APK-Protocol-Regular-Trial.otf") format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      body {
+        background: #000;
+        overflow: hidden;
+        font-family: protocall, -apple-system, BlinkMacSystemFont, sans-serif;
+        color: white;
+      }
+
+      canvas {
+        display: block;
+      }
+
+      /* Header - Lower Profile */
+      .header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 44px;
+        backdrop-filter: blur(20px);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        z-index: 1000;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: protocall, sans-serif;
+      }
+
+      .logo-icon {
+        height: 24px;
+        width: auto;
+        /* Placeholder for future logo */
+        /* background: rgba(255, 255, 255, 0.1); */
+        /* border-radius: 4px; */
+      }
+
+      .logo-text {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+      }
+
+      .logo h1 {
+        font-size: 18px;
+        font-weight: 700;
+        color: white;
+        letter-spacing: -0.02em;
+      }
+
+      .logo-divider {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 300;
+      }
+
+      .logo h6 {
+        font-size: 12px;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.7);
+        letter-spacing: 0.02em;
+        text-transform: lowercase;
+      }
+
+      /* Control Panel - Adjusted for new header height */
+      .controls-container {
+        position: absolute;
+        top: 64px;
+        left: 20px;
+        z-index: 999;
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      .controls-container.collapsed {
+        transform: translateX(-110%);
+      }
+
+      .controls {
+        background: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(40px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 20px;
+        font-size: 13px;
+        max-height: calc(100vh - 104px);
+        overflow-y: auto;
+        width: 250px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        font-family: protocall, sans-serif;
+      }
+
+      .controls::-webkit-scrollbar {
+        width: 0px;
+      }
+
+      .controls::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .controls::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+      }
+
+      .controls::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      /* Toggle Button */
+      .toggle-btn {
+        position: absolute;
+        right: -48px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        background: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(40px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      .toggle-btn:hover {
+        background: rgba(20, 20, 20, 0.95);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .toggle-icon {
+        width: 20px;
+        height: 20px;
+        transition: transform 0.3s ease;
+      }
+
+      .controls-container.collapsed .toggle-icon {
+        transform: rotate(180deg);
+      }
+
+      /* Section Styling */
+      .section {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+
+      .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: white;
+        letter-spacing: 0.3px;
+      }
+
+      /* Control Groups */
+      .control-item {
+        margin-bottom: 16px;
+      }
+
+      .control-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .control-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 6px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* Input Styling */
+      .controls input[type="range"] {
+        flex: 1;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        outline: none;
+        -webkit-appearance: none;
+      }
+
+      .controls input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 10px;
+        height: 5px;
+        background: #beff00;
+        border-radius: 10%;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .controls input[type="range"]::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        background: white;
+        border-radius: 50%;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .controls input[type="number"] {
+        width: 60px;
+        padding: 6px 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        color: white;
+        font-size: 12px;
+        text-align: center;
+        font-family: protocall, sans-serif;
+      }
+
+      .controls input[type="number"]:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .controls select {
+        width: 100%;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        color: white;
+        font-size: 12px;
+        margin-top: 4px;
+        font-family: protocall, sans-serif;
+      }
+
+      .controls select:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      /* Button Grid */
+      .button-grid {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+
+      .button-grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .button-grid-1 {
+        grid-template-columns: 1fr;
+      }
+
+      .rotation-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        font-family: protocall, sans-serif;
+      }
+
+      .rotation-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .rotation-btn:active {
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0.98);
+      }
+
+      .rotation-btn:disabled {
+        background: rgba(255, 255, 255, 0.02);
+        border-color: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.3);
+        cursor: not-allowed;
+      }
+
+      .invis {
+        display: none;
+      }
     </style>
-</head>
-<body>
-    <div class="controls">
-        <div class="section">
-            <div class="section-title">Wave Properties</div>
-            <label>Wave Height:
-                <div class="control-group">
-                    <input type="range" id="amplitude" min="0.1" max="15" step="0.1" value="2">
-                    <input type="number" id="amplitudeNum" min="0.1" max="15" step="0.1" value="2">
-                </div>
-            </label>
-            <label>Wave Speed:
-                <div class="control-group">
-                    <input type="range" id="speed" min="0.1" max="3" step="0.1" value="0.8">
-                    <input type="number" id="speedNum" min="0.1" max="3" step="0.1" value="0.8">
-                </div>
-            </label>
-            <label>Wave Scale:
-                <div class="control-group">
-                    <input type="range" id="waveScale" min="0.2" max="5" step="0.1" value="1">
-                    <input type="number" id="waveScaleNum" min="0.2" max="5" step="0.1" value="1">
-                </div>
-            </label>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <!-- Logo space - ready for your uploaded logo -->
+        <!-- <img src="/path-to-your-logo.svg" alt="Unity Logo" class="logo-icon"> -->
+        <div class="logo-text">
+          <h1>Unity</h1>
+          <span class="logo-divider">|</span>
+          <h6>generative illustrations</h6>
         </div>
-        
+      </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="controls-container" id="controlsContainer">
+      <div class="controls">
         <div class="section">
-            <div class="section-title">Grid Settings</div>
-            <label>Grid Density:
-                <div class="control-group">
-                    <input type="range" id="gridSize" min="30" max="80" step="5" value="50">
-                    <input type="number" id="gridSizeNum" min="30" max="80" step="5" value="50">
-                </div>
-            </label>
-            <label>Dot Size:
-                <div class="control-group">
-                    <input type="range" id="dotSize" min="0.5" max="10" step="0.1" value="4">
-                    <input type="number" id="dotSizeNum" min="0.5" max="10" step="0.1" value="4">
-                </div>
-            </label>
-        </div>
-        
-        <div class="section">
-            <div class="section-title">Displacement Mode</div>
-            <label>Type: 
-                <select id="displacementType">
-                    <option value="wave">Sine Waves</option>
-                    <option value="perlin">Perlin Noise</option>
-                    <option value="quantizedWave">Quantized Waves</option>
-                    <option value="quantizedPerlin">Quantized Perlin</option>
-                    <option value="radar">Radar Circles</option>
-                    <option value="grid">Grid Pattern</option>
-                    <option value="frequencyBands">Frequency Bands</option>
-                    <option value="spiral">Spiral Wave</option>
-                    <option value="checkerboard">Checkerboard</option>
-                    <option value="ripples">Multi Ripples</option>
-                    <option value="fractal">Fractal Noise</option>
-                    <option value="diagonal">Diagonal Waves</option>
-                    <option value="circuitTraces">Circuit Traces</option>
-                    <option value="logicGates">Digital Logic</option>
-                    <option value="shiftRegisters">Shift Registers</option>
-                    <option value="clockDomains">Clock Domains</option>
-                    <option value="polynomialGrid">Polynomial Grid</option>
-                    <option value="distanceFields">Distance Fields</option>
-                    <option value="smoothModular">Smooth Modular</option>
-                    <option value="exponentialGrid">Exponential Grid</option>
-                    <option value="mandelbrot">Mandelbrot Field</option>
-                    <option value="voronoi">Voronoi Field</option>
-                    <option value="primeSpiral">Prime Spiral</option>
-                    <option value="crystalline">Crystal Lattice</option>
-                    <option value="sphericalProj">Spherical Projection</option>
-                    <option value="paraboloid">Paraboloid Surface</option>
-                    <option value="hyperboloid">Hyperboloid Surface</option>
-                    <option value="toroidal">Toroidal Field</option>
-                </select>
-            </label>
-            <label>Quantization Steps:
-                <div class="control-group">
-                    <input type="range" id="quantSteps" min="2" max="20" step="1" value="8">
-                    <input type="number" id="quantStepsNum" min="2" max="20" step="1" value="8">
-                </div>
-            </label>
-        </div>
-        
-        <div class="section">
-            <div class="section-title">Camera</div>
-            <label>Zoom:
-                <div class="control-group">
-                    <input type="range" id="zoom" min="5" max="25" step="1" value="15">
-                    <input type="number" id="zoomNum" min="5" max="25" step="1" value="15">
-                </div>
-            </label>
-        </div>
-        
-        <div class="section">
-            <div class="section-title">Auto Rotation</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
-                <button class="rotation-btn" onclick="rotateCamera('x', 90)">X +90°</button>
-                <button class="rotation-btn" onclick="rotateCamera('x', -90)">X -90°</button>
-                <button class="rotation-btn" onclick="rotateCamera('y', 90)">Y +90°</button>
-                <button class="rotation-btn" onclick="rotateCamera('y', -90)">Y -90°</button>
-                <button class="rotation-btn" onclick="rotateCamera('z', 90)">Z +90°</button>
-                <button class="rotation-btn" onclick="rotateCamera('z', -90)">Z -90°</button>
+          <div class="section-title">Wave Properties</div>
+
+          <div class="control-item">
+            <label class="control-label">Wave Height</label>
+            <div class="control-group">
+              <input
+                type="range"
+                id="amplitude"
+                min="0.1"
+                max="15"
+                step="0.1"
+                value="2"
+              />
+              <input
+                type="number"
+                id="amplitudeNum"
+                min="0.1"
+                max="15"
+                step="0.1"
+                value="2"
+              />
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
-                <button class="rotation-btn" onclick="rotateCamera('x', 180)">X 180°</button>
-                <button class="rotation-btn" onclick="rotateCamera('y', 180)">Y 180°</button>
+          </div>
+
+          <div class="control-item">
+            <label class="control-label">Wave Speed</label>
+            <div class="control-group">
+              <input
+                type="range"
+                id="speed"
+                min="0.1"
+                max="3"
+                step="0.1"
+                value="0.8"
+              />
+              <input
+                type="number"
+                id="speedNum"
+                min="0.1"
+                max="3"
+                step="0.1"
+                value="0.8"
+              />
             </div>
-            <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 10px;">
-                <button class="rotation-btn" onclick="rotateCamera('orbit', 360)">Orbit 360°</button>
-                <button class="rotation-btn" onclick="resetCamera()">Reset View</button>
+          </div>
+
+          <div class="control-item">
+            <label class="control-label">Wave Scale</label>
+            <div class="control-group">
+              <input
+                type="range"
+                id="waveScale"
+                min="0.2"
+                max="5"
+                step="0.1"
+                value="1"
+              />
+              <input
+                type="number"
+                id="waveScaleNum"
+                min="0.2"
+                max="5"
+                step="0.1"
+                value="1"
+              />
             </div>
-            <label>Rotation Speed:
-                <div class="control-group">
-                    <input type="range" id="rotationSpeed" min="0.5" max="3" step="0.1" value="1.5">
-                    <input type="number" id="rotationSpeedNum" min="0.5" max="3" step="0.1" value="1.5">
-                </div>
-            </label>
+          </div>
         </div>
+
+        <div class="section">
+          <div class="section-title">Grid Settings</div>
+
+          <div class="control-item">
+            <label class="control-label">Grid Density</label>
+            <div class="control-group">
+              <input
+                type="range"
+                id="gridSize"
+                min="30"
+                max="80"
+                step="5"
+                value="50"
+              />
+              <input
+                type="number"
+                id="gridSizeNum"
+                min="30"
+                max="80"
+                step="5"
+                value="50"
+              />
+            </div>
+          </div>
+
+          <div class="control-item">
+            <label class="control-label">Dot Size</label>
+            <div class="control-group">
+              <input
+                type="range"
+                id="dotSize"
+                min="0.5"
+                max="10"
+                step="0.1"
+                value="4"
+              />
+              <input
+                type="number"
+                id="dotSizeNum"
+                min="0.5"
+                max="10"
+                step="0.1"
+                value="4"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Displacement Mode</div>
+
+          <div class="control-item">
+            <label class="control-label">Type</label>
+            <select id="displacementType">
+              <option value="wave">Sine Waves</option>
+              <option value="perlin">Perlin Noise</option>
+              <option value="quantizedWave">Quantized Waves</option>
+              <option value="quantizedPerlin">Quantized Perlin</option>
+              <option value="radar">Radar Circles</option>
+              <option value="grid">Grid Pattern</option>
+              <option value="frequencyBands">Frequency Bands</option>
+              <option value="spiral">Spiral Wave</option>
+              <option value="checkerboard">Checkerboard</option>
+              <option value="ripples">Multi Ripples</option>
+              <option value="fractal">Fractal Noise</option>
+              <option value="diagonal">Diagonal Waves</option>
+              <option value="circuitTraces">Circuit Traces</option>
+              <option value="logicGates">Digital Logic</option>
+              <option value="shiftRegisters">Shift Registers</option>
+              <option value="clockDomains">Clock Domains</option>
+              <option value="polynomialGrid">Polynomial Grid</option>
+              <option value="distanceFields">Distance Fields</option>
+              <option value="smoothModular">Smooth Modular</option>
+              <option value="exponentialGrid">Exponential Grid</option>
+              <option value="mandelbrot">Mandelbrot Field</option>
+              <option value="voronoi">Voronoi Field</option>
+              <option value="primeSpiral">Prime Spiral</option>
+              <option value="crystalline">Crystal Lattice</option>
+              <option value="sphericalProj">Spherical Projection</option>
+              <option value="paraboloid">Paraboloid Surface</option>
+              <option value="hyperboloid">Hyperboloid Surface</option>
+              <option value="toroidal">Toroidal Field</option>
+              <option value="routingChannels">Routing Channels</option>
+              <option value="memoryArrays">Memory Arrays</option>
+              <option value="pipelineArch">Pipeline Architecture</option>
+              <option value="signalProcessing">Signal Processing</option>
+            </select>
+          </div>
+
+          <div class="control-item">
+            <label class="control-label">Quantization Steps</label>
+            <div class="control-group">
+              <input
+                type="range"
+                id="quantSteps"
+                min="2"
+                max="20"
+                step="1"
+                value="8"
+              />
+              <input
+                type="number"
+                id="quantStepsNum"
+                min="2"
+                max="20"
+                step="1"
+                value="8"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="section invis">
+          <div class="section-title">Camera</div>
+
+          <div class="control-item invis">
+            <label class="control-label">Zoom</label>
+            <div class="control-group">
+              <input
+                type="range"
+                id="zoom"
+                min="5"
+                max="25"
+                step="1"
+                value="15"
+              />
+              <input
+                type="number"
+                id="zoomNum"
+                min="5"
+                max="25"
+                step="1"
+                value="15"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Auto Rotation</div>
+
+          <div class="button-grid button-grid-2">
+            <button class="rotation-btn" onclick="rotateCamera('x', 90)">
+              X +90°
+            </button>
+            <button class="rotation-btn" onclick="rotateCamera('x', -90)">
+              X -90°
+            </button>
+            <button class="rotation-btn" onclick="rotateCamera('y', 90)">
+              Y +90°
+            </button>
+            <button class="rotation-btn" onclick="rotateCamera('y', -90)">
+              Y -90°
+            </button>
+            <button class="rotation-btn" onclick="rotateCamera('z', 90)">
+              Z +90°
+            </button>
+            <button class="rotation-btn" onclick="rotateCamera('z', -90)">
+              Z -90°
+            </button>
+          </div>
+
+          <div class="button-grid button-grid-2">
+            <button class="rotation-btn" onclick="rotateCamera('x', 180)">
+              X 180°
+            </button>
+            <button class="rotation-btn" onclick="rotateCamera('y', 180)">
+              Y 180°
+            </button>
+          </div>
+
+          <div class="button-grid button-grid-1">
+            <button class="rotation-btn" onclick="rotateCamera('orbit', 360)">
+              Orbit 360°
+            </button>
+            <button class="rotation-btn" onclick="resetCamera()">
+              Reset View
+            </button>
+          </div>
+
+          <div class="control-item">
+            <label class="control-label">Rotation Speed</label>
+            <div class="control-group">
+              <input
+                type="range"
+                id="rotationSpeed"
+                min="0.5"
+                max="3"
+                step="0.1"
+                value="1.5"
+              />
+              <input
+                type="number"
+                id="rotationSpeedNum"
+                min="0.5"
+                max="3"
+                step="0.1"
+                value="1.5"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toggle Button -->
+      <div class="toggle-btn" id="toggleBtn">
+        <svg
+          class="toggle-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Simple mouse controls for orthographic camera
-        class SimpleControls {
-            constructor(camera, domElement) {
-                this.camera = camera;
-                this.domElement = domElement;
-                this.enabled = true;
-                
-                this.rotationX = -0.3;
-                this.rotationY = 0;
-                this.isDragging = false;
-                this.previousMousePosition = { x: 0, y: 0 };
-                
-                // Animation properties
-                this.isAnimating = false;
-                this.animationStart = 0;
-                this.animationDuration = 1000; // 1 second default
-                this.startRotation = { x: 0, y: 0 };
-                this.targetRotation = { x: 0, y: 0 };
-                this.animationType = 'rotate';
-                
-                this.init();
-                this.updateCamera();
-            }
-            
-            init() {
-                this.domElement.addEventListener('mousedown', this.onMouseDown.bind(this), false);
-                this.domElement.addEventListener('mousemove', this.onMouseMove.bind(this), false);
-                this.domElement.addEventListener('mouseup', this.onMouseUp.bind(this), false);
-                this.domElement.addEventListener('wheel', this.onWheel.bind(this), false);
-            }
-            
-            onMouseDown(event) {
-                if (!this.enabled || this.isAnimating) return;
-                this.isDragging = true;
-                this.previousMousePosition = { x: event.clientX, y: event.clientY };
-            }
-            
-            onMouseMove(event) {
-                if (!this.enabled || !this.isDragging || this.isAnimating) return;
-                
-                const deltaX = event.clientX - this.previousMousePosition.x;
-                const deltaY = event.clientY - this.previousMousePosition.y;
-                
-                this.rotationY += deltaX * 0.005;
-                this.rotationX += deltaY * 0.005;
-                
-                // Limit rotation
-                this.rotationX = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.rotationX));
-                
-                this.previousMousePosition = { x: event.clientX, y: event.clientY };
-                this.updateCamera();
-            }
-            
-            onMouseUp() {
-                this.isDragging = false;
-            }
-            
-            onWheel(event) {
-                if (!this.enabled || this.isAnimating) return;
-                event.preventDefault();
-                
-                const zoomSlider = document.getElementById('zoom');
-                const zoomNum = document.getElementById('zoomNum');
-                let currentZoom = parseFloat(zoomSlider.value);
-                currentZoom += event.deltaY > 0 ? 1 : -1;
-                currentZoom = Math.max(5, Math.min(25, currentZoom));
-                zoomSlider.value = currentZoom;
-                zoomNum.value = currentZoom;
-                
-                this.updateZoom(currentZoom);
-            }
-            
-            updateCamera() {
-                const distance = 20;
-                this.camera.position.x = Math.sin(this.rotationY) * Math.cos(this.rotationX) * distance;
-                this.camera.position.y = Math.sin(this.rotationX) * distance;
-                this.camera.position.z = Math.cos(this.rotationY) * Math.cos(this.rotationX) * distance;
-                this.camera.lookAt(0, 0, 0);
-            }
-            
-            updateZoom(zoom) {
-                this.camera.left = -zoom;
-                this.camera.right = zoom;
-                this.camera.top = zoom;
-                this.camera.bottom = -zoom;
-                this.camera.updateProjectionMatrix();
-            }
-            
-            // Smooth rotation animation
-            animateRotation(axis, degrees) {
-                if (this.isAnimating) return;
-                
-                this.isAnimating = true;
-                this.animationStart = Date.now();
-                this.startRotation = { x: this.rotationX, y: this.rotationY };
-                
-                const radians = (degrees * Math.PI) / 180;
-                
-                // Calculate target rotation based on axis
-                switch (axis) {
-                    case 'x':
-                        this.targetRotation = {
-                            x: this.rotationX + radians,
-                            y: this.rotationY
-                        };
-                        break;
-                    case 'y':
-                        this.targetRotation = {
-                            x: this.rotationX,
-                            y: this.rotationY + radians
-                        };
-                        break;
-                    case 'z':
-                        // Z rotation affects both X and Y to create a roll effect
-                        this.targetRotation = {
-                            x: this.rotationX + radians * 0.3,
-                            y: this.rotationY + radians
-                        };
-                        break;
-                    case 'orbit':
-                        this.targetRotation = {
-                            x: this.rotationX,
-                            y: this.rotationY + radians
-                        };
-                        this.animationType = 'orbit';
-                        break;
-                }
-                
-                // Clamp target rotation
-                this.targetRotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.targetRotation.x));
-                
-                // Set animation duration based on rotation speed
-                const rotationSpeed = parseFloat(document.getElementById('rotationSpeed').value);
-                this.animationDuration = (Math.abs(degrees) / 90) * (1000 / rotationSpeed);
-                
-                this.updateButtons(true);
-            }
-            
-            // Update animation frame
-            updateAnimation() {
-                if (!this.isAnimating) return;
-                
-                const elapsed = Date.now() - this.animationStart;
-                const progress = Math.min(elapsed / this.animationDuration, 1);
-                
-                // Smooth easing function
-                const easeProgress = 1 - Math.pow(1 - progress, 3);
-                
-                // Interpolate rotation
-                this.rotationX = this.startRotation.x + (this.targetRotation.x - this.startRotation.x) * easeProgress;
-                this.rotationY = this.startRotation.y + (this.targetRotation.y - this.startRotation.y) * easeProgress;
-                
-                this.updateCamera();
-                
-                if (progress >= 1) {
-                    this.isAnimating = false;
-                    this.animationType = 'rotate';
-                    this.updateButtons(false);
-                }
-            }
-            
-            // Reset to default view
-            resetView() {
-                if (this.isAnimating) return;
-                
-                this.isAnimating = true;
-                this.animationStart = Date.now();
-                this.startRotation = { x: this.rotationX, y: this.rotationY };
-                this.targetRotation = { x: -0.3, y: 0 };
-                
-                const rotationSpeed = parseFloat(document.getElementById('rotationSpeed').value);
-                this.animationDuration = 1000 / rotationSpeed;
-                
-                this.updateButtons(true);
-            }
-            
-            // Update button states
-            updateButtons(disabled) {
-                const buttons = document.querySelectorAll('.rotation-btn');
-                buttons.forEach(btn => btn.disabled = disabled);
-            }
+      // Control panel collapse/expand functionality
+      const controlsContainer = document.getElementById("controlsContainer");
+      const toggleBtn = document.getElementById("toggleBtn");
+      const showControlsBtn = document.getElementById("showControlsBtn");
+
+      function toggleControls() {
+        const isCollapsed = controlsContainer.classList.contains("collapsed");
+
+        if (isCollapsed) {
+          controlsContainer.classList.remove("collapsed");
+          showControlsBtn.classList.remove("visible");
+        } else {
+          controlsContainer.classList.add("collapsed");
+          showControlsBtn.classList.add("visible");
+        }
+      }
+
+      toggleBtn.addEventListener("click", toggleControls);
+
+      // Simple mouse controls for orthographic camera
+      class SimpleControls {
+        constructor(camera, domElement) {
+          this.camera = camera;
+          this.domElement = domElement;
+          this.enabled = true;
+
+          this.rotationX = -0.3;
+          this.rotationY = 0;
+          this.isDragging = false;
+          this.previousMousePosition = { x: 0, y: 0 };
+
+          // Animation properties
+          this.isAnimating = false;
+          this.animationStart = 0;
+          this.animationDuration = 1000; // 1 second default
+          this.startRotation = { x: 0, y: 0 };
+          this.targetRotation = { x: 0, y: 0 };
+          this.animationType = "rotate";
+
+          this.init();
+          this.updateCamera();
         }
 
-        // Simplified circle texture
-        function createCircleTexture() {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = 32;
-            canvas.height = 32;
-
-            const center = 16;
-            const radius = 14;
-
-            context.clearRect(0, 0, 32, 32);
-            
-            // Solid white circle
-            context.fillStyle = 'white';
-            context.beginPath();
-            context.arc(center, center, radius, 0, 2 * Math.PI);
-            context.fill();
-
-            return new THREE.CanvasTexture(canvas);
+        init() {
+          this.domElement.addEventListener(
+            "mousedown",
+            this.onMouseDown.bind(this),
+            false
+          );
+          this.domElement.addEventListener(
+            "mousemove",
+            this.onMouseMove.bind(this),
+            false
+          );
+          this.domElement.addEventListener(
+            "mouseup",
+            this.onMouseUp.bind(this),
+            false
+          );
         }
 
-        // Scene setup with orthographic camera
-        const scene = new THREE.Scene();
-        const aspect = window.innerWidth / window.innerHeight;
-        const camera = new THREE.OrthographicCamera(-15 * aspect, 15 * aspect, 15, -15, 0.1, 100);
-        
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setClearColor(0x000000);
-        document.body.appendChild(renderer.domElement);
-
-        // Variables
-        let gridSize = 50;
-        let spacing = 0.5;
-        let amplitude = 2;
-        let speed = 0.8;
-        let waveScale = 1;
-        let quantSteps = 8;
-        let dotSize = 4;
-        let time = 0;
-        let points = [];
-        let geometry, material, pointCloud;
-        let displacementType = 'wave';
-
-        const circleTexture = createCircleTexture();
-
-        // Perlin noise implementation
-        class PerlinNoise {
-            constructor() {
-                this.permutation = [];
-                this.p = [];
-                
-                // Initialize permutation table
-                for (let i = 0; i < 256; i++) {
-                    this.permutation[i] = i;
-                }
-                
-                // Shuffle the permutation table
-                for (let i = 255; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [this.permutation[i], this.permutation[j]] = [this.permutation[j], this.permutation[i]];
-                }
-                
-                // Duplicate the permutation table
-                for (let i = 0; i < 512; i++) {
-                    this.p[i] = this.permutation[i % 256];
-                }
-            }
-            
-            fade(t) {
-                return t * t * t * (t * (t * 6 - 15) + 10);
-            }
-            
-            lerp(t, a, b) {
-                return a + t * (b - a);
-            }
-            
-            grad(hash, x, y, z) {
-                const h = hash & 15;
-                const u = h < 8 ? x : y;
-                const v = h < 4 ? y : h === 12 || h === 14 ? x : z;
-                return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
-            }
-            
-            noise(x, y, z) {
-                const X = Math.floor(x) & 255;
-                const Y = Math.floor(y) & 255;
-                const Z = Math.floor(z) & 255;
-                
-                x -= Math.floor(x);
-                y -= Math.floor(y);
-                z -= Math.floor(z);
-                
-                const u = this.fade(x);
-                const v = this.fade(y);
-                const w = this.fade(z);
-                
-                const A = this.p[X] + Y;
-                const AA = this.p[A] + Z;
-                const AB = this.p[A + 1] + Z;
-                const B = this.p[X + 1] + Y;
-                const BA = this.p[B] + Z;
-                const BB = this.p[B + 1] + Z;
-                
-                return this.lerp(w,
-                    this.lerp(v,
-                        this.lerp(u, this.grad(this.p[AA], x, y, z), this.grad(this.p[BA], x - 1, y, z)),
-                        this.lerp(u, this.grad(this.p[AB], x, y - 1, z), this.grad(this.p[BB], x - 1, y - 1, z))
-                    ),
-                    this.lerp(v,
-                        this.lerp(u, this.grad(this.p[AA + 1], x, y, z - 1), this.grad(this.p[BA + 1], x - 1, y, z - 1)),
-                        this.lerp(u, this.grad(this.p[AB + 1], x, y - 1, z - 1), this.grad(this.p[BB + 1], x - 1, y - 1, z - 1))
-                    )
-                );
-            }
-            
-            // Octave noise for more natural-looking displacement
-            octaveNoise(x, y, z, octaves = 3, persistence = 0.5, lacunarity = 2.0) {
-                let value = 0;
-                let amplitude = 1;
-                let frequency = 1;
-                let maxValue = 0;
-                
-                for (let i = 0; i < octaves; i++) {
-                    value += this.noise(x * frequency, y * frequency, z * frequency) * amplitude;
-                    maxValue += amplitude;
-                    amplitude *= persistence;
-                    frequency *= lacunarity;
-                }
-                
-                return value / maxValue;
-            }
-        }
-        
-        // Create Perlin noise instance
-        const perlin = new PerlinNoise();
-
-        // Displacement functions
-        function simpleWave(x, y, time) {
-            const freq1 = 0.15 * waveScale;
-            const freq2 = 0.08 * waveScale;
-            const timeOffset = time * speed;
-            
-            const wave1 = Math.sin(x * freq1 + timeOffset) * Math.cos(y * freq1 + timeOffset * 0.7);
-            const wave2 = Math.sin(x * freq2 - timeOffset * 0.5) * Math.sin(y * freq2 + timeOffset * 0.3);
-            
-            return (wave1 + wave2 * 0.5) * amplitude;
+        onMouseDown(event) {
+          if (!this.enabled || this.isAnimating) return;
+          this.isDragging = true;
+          this.previousMousePosition = { x: event.clientX, y: event.clientY };
         }
 
-        function perlinDisplacement(x, y, time) {
-            const freq = 0.02 * waveScale;
-            const timeScale = time * speed * 0.1;
-            
-            return perlin.octaveNoise(x * freq, y * freq, timeScale, 3, 0.5, 2.0) * amplitude * 2;
+        onMouseMove(event) {
+          if (!this.enabled || !this.isDragging || this.isAnimating) return;
+
+          const deltaX = event.clientX - this.previousMousePosition.x;
+          const deltaY = event.clientY - this.previousMousePosition.y;
+
+          this.rotationY += deltaX * 0.005;
+          this.rotationX += deltaY * 0.005;
+
+          // Limit rotation
+          this.rotationX = Math.max(
+            -Math.PI / 2,
+            Math.min(Math.PI / 2, this.rotationX)
+          );
+
+          this.previousMousePosition = { x: event.clientX, y: event.clientY };
+          this.updateCamera();
         }
 
-        // Quantization helper function
-        function quantizeValue(value, steps) {
-            return Math.round(value * steps) / steps;
+        onMouseUp() {
+          this.isDragging = false;
         }
 
-        // Quantized displacement functions
-        function quantizedWave(x, y, time) {
-            const waveValue = simpleWave(x, y, time);
-            return quantizeValue(waveValue, quantSteps);
+        updateCamera() {
+          const distance = 20;
+          this.camera.position.x =
+            Math.sin(this.rotationY) * Math.cos(this.rotationX) * distance;
+          this.camera.position.y = Math.sin(this.rotationX) * distance;
+          this.camera.position.z =
+            Math.cos(this.rotationY) * Math.cos(this.rotationX) * distance;
+          this.camera.lookAt(0, 0, 0);
         }
 
-        function quantizedPerlin(x, y, time) {
-            const perlinValue = perlinDisplacement(x, y, time);
-            return quantizeValue(perlinValue, quantSteps);
+        updateZoom(zoom) {
+          this.camera.left = -zoom;
+          this.camera.right = zoom;
+          this.camera.top = zoom;
+          this.camera.bottom = -zoom;
+          this.camera.updateProjectionMatrix();
         }
 
-        // Technical radar circles pattern
-        function radarPattern(x, y, time) {
-            const centerX = 0;
-            const centerY = 0;
-            const distance = Math.sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
-            const freq = 0.3 * waveScale;
-            const timeOffset = time * speed;
-            
-            const wave = Math.sin(distance * freq - timeOffset);
-            return wave * amplitude;
+        // Smooth rotation animation
+        animateRotation(axis, degrees) {
+          if (this.isAnimating) return;
+
+          this.isAnimating = true;
+          this.animationStart = Date.now();
+          this.startRotation = { x: this.rotationX, y: this.rotationY };
+
+          const radians = (degrees * Math.PI) / 180;
+
+          // Calculate target rotation based on axis
+          switch (axis) {
+            case "x":
+              this.targetRotation = {
+                x: this.rotationX + radians,
+                y: this.rotationY,
+              };
+              break;
+            case "y":
+              this.targetRotation = {
+                x: this.rotationX,
+                y: this.rotationY + radians,
+              };
+              break;
+            case "z":
+              // Z rotation affects both X and Y to create a roll effect
+              this.targetRotation = {
+                x: this.rotationX + radians * 0.3,
+                y: this.rotationY + radians,
+              };
+              break;
+            case "orbit":
+              this.targetRotation = {
+                x: this.rotationX,
+                y: this.rotationY + radians,
+              };
+              this.animationType = "orbit";
+              break;
+          }
+
+          // Clamp target rotation
+          this.targetRotation.x = Math.max(
+            -Math.PI / 2,
+            Math.min(Math.PI / 2, this.targetRotation.x)
+          );
+
+          // Set animation duration based on rotation speed
+          const rotationSpeed = parseFloat(
+            document.getElementById("rotationSpeed").value
+          );
+          this.animationDuration =
+            (Math.abs(degrees) / 90) * (1000 / rotationSpeed);
+
+          this.updateButtons(true);
         }
 
-        // Grid pattern - creates a 3D grid of peaks and valleys
-        function gridPattern(x, y, time) {
-            const freq = 0.4 * waveScale;
-            const timeOffset = time * speed;
-            
-            const gridX = Math.sin(x * freq + timeOffset);
-            const gridY = Math.sin(y * freq + timeOffset * 0.7);
-            
-            return (gridX * gridY) * amplitude;
+        // Update animation frame
+        updateAnimation() {
+          if (!this.isAnimating) return;
+
+          const elapsed = Date.now() - this.animationStart;
+          const progress = Math.min(elapsed / this.animationDuration, 1);
+
+          // Smooth easing function
+          const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+          // Interpolate rotation
+          this.rotationX =
+            this.startRotation.x +
+            (this.targetRotation.x - this.startRotation.x) * easeProgress;
+          this.rotationY =
+            this.startRotation.y +
+            (this.targetRotation.y - this.startRotation.y) * easeProgress;
+
+          this.updateCamera();
+
+          if (progress >= 1) {
+            this.isAnimating = false;
+            this.animationType = "rotate";
+            this.updateButtons(false);
+          }
         }
 
-        // Frequency bands - horizontal bands like an audio visualizer
-        function frequencyBands(x, y, time) {
-            const bands = 8;
-            const bandHeight = 5;
-            const freq = 0.2 * waveScale;
-            const timeOffset = time * speed;
-            
-            const bandIndex = Math.floor((y + bandHeight * bands / 2) / bandHeight);
-            const bandCenter = (bandIndex * bandHeight) - (bandHeight * bands / 2) + bandHeight / 2;
-            const distanceFromCenter = Math.abs(y - bandCenter);
-            
-            if (distanceFromCenter < bandHeight / 2) {
-                const bandPhase = bandIndex * 0.5 + timeOffset;
-                const bandAmplitude = Math.sin(x * freq + bandPhase) * (1 - distanceFromCenter / (bandHeight / 2));
-                return bandAmplitude * amplitude;
-            }
-            
-            return 0;
+        // Reset to default view
+        resetView() {
+          if (this.isAnimating) return;
+
+          this.isAnimating = true;
+          this.animationStart = Date.now();
+          this.startRotation = { x: this.rotationX, y: this.rotationY };
+          this.targetRotation = { x: -0.3, y: 0 };
+
+          const rotationSpeed = parseFloat(
+            document.getElementById("rotationSpeed").value
+          );
+          this.animationDuration = 1000 / rotationSpeed;
+
+          this.updateButtons(true);
         }
 
-        // Spiral wave pattern
-        function spiralPattern(x, y, time) {
-            const distance = Math.sqrt(x * x + y * y);
-            const angle = Math.atan2(y, x);
-            const spiralFreq = 0.3 * waveScale;
-            const timeOffset = time * speed;
-            
-            const spiral = Math.sin(distance * spiralFreq - angle * 3 + timeOffset);
-            return spiral * amplitude;
+        // Update button states
+        updateButtons(disabled) {
+          const buttons = document.querySelectorAll(".rotation-btn");
+          buttons.forEach((btn) => (btn.disabled = disabled));
         }
+      }
 
-        // Checkerboard pattern with animated height
-        function checkerboardPattern(x, y, time) {
-            const cellSize = 2 / waveScale;
-            const timeOffset = time * speed;
-            
-            const cellX = Math.floor(x / cellSize);
-            const cellY = Math.floor(y / cellSize);
-            const isEven = (cellX + cellY) % 2 === 0;
-            
-            const wave = Math.sin(timeOffset * 2);
-            return (isEven ? wave : -wave) * amplitude;
-        }
+      // Simplified circle texture
+      function createCircleTexture() {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.width = 32;
+        canvas.height = 32;
 
-        // Multiple ripples from different points
-        function multiRipples(x, y, time) {
-            const timeOffset = time * speed;
-            const freq = 0.4 * waveScale;
-            
-            // Multiple ripple sources
-            const sources = [
-                { x: -5, y: -5, phase: 0 },
-                { x: 5, y: 5, phase: Math.PI },
-                { x: -5, y: 5, phase: Math.PI / 2 },
-                { x: 5, y: -5, phase: 3 * Math.PI / 2 }
+        const center = 16;
+        const radius = 14;
+
+        context.clearRect(0, 0, 32, 32);
+
+        // Solid white circle
+        context.fillStyle = "white";
+        context.beginPath();
+        context.arc(center, center, radius, 0, 2 * Math.PI);
+        context.fill();
+
+        return new THREE.CanvasTexture(canvas);
+      }
+
+      // Scene setup with orthographic camera
+      const scene = new THREE.Scene();
+      const aspect = window.innerWidth / window.innerHeight;
+      const camera = new THREE.OrthographicCamera(
+        -15 * aspect,
+        15 * aspect,
+        15,
+        -15,
+        0.1,
+        100
+      );
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x000000);
+      document.body.appendChild(renderer.domElement);
+
+      // Variables
+      let gridSize = 50;
+      let spacing = 0.5;
+      let amplitude = 2;
+      let speed = 0.8;
+      let waveScale = 1;
+      let quantSteps = 8;
+      let dotSize = 4;
+      let time = 0;
+      let points = [];
+      let geometry, material, pointCloud;
+      let displacementType = "wave";
+
+      const circleTexture = createCircleTexture();
+
+      // Perlin noise implementation
+      class PerlinNoise {
+        constructor() {
+          this.permutation = [];
+          this.p = [];
+
+          // Initialize permutation table
+          for (let i = 0; i < 256; i++) {
+            this.permutation[i] = i;
+          }
+
+          // Shuffle the permutation table
+          for (let i = 255; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.permutation[i], this.permutation[j]] = [
+              this.permutation[j],
+              this.permutation[i],
             ];
-            
-            let totalWave = 0;
-            sources.forEach(source => {
-                const distance = Math.sqrt((x - source.x) * (x - source.x) + (y - source.y) * (y - source.y));
-                const wave = Math.sin(distance * freq - timeOffset + source.phase);
-                totalWave += wave / sources.length;
-            });
-            
-            return totalWave * amplitude;
+          }
+
+          // Duplicate the permutation table
+          for (let i = 0; i < 512; i++) {
+            this.p[i] = this.permutation[i % 256];
+          }
         }
 
-        // Fractal-like noise pattern
-        function fractalPattern(x, y, time) {
-            const timeOffset = time * speed * 0.1;
-            const baseFreq = 0.05 * waveScale;
-            
-            let total = 0;
-            let amplitude_local = 1;
-            let frequency = baseFreq;
-            
-            for (let i = 0; i < 4; i++) {
-                total += perlin.noise(x * frequency, y * frequency, timeOffset) * amplitude_local;
-                amplitude_local *= 0.5;
-                frequency *= 2;
-            }
-            
-            return total * amplitude;
+        fade(t) {
+          return t * t * t * (t * (t * 6 - 15) + 10);
         }
 
-        // Diagonal wave pattern
-        function diagonalWaves(x, y, time) {
-            const freq = 0.2 * waveScale;
-            const timeOffset = time * speed;
-            
-            const diagonal1 = Math.sin((x + y) * freq + timeOffset);
-            const diagonal2 = Math.sin((x - y) * freq + timeOffset * 0.7);
-            
-            return (diagonal1 + diagonal2 * 0.5) * amplitude;
+        lerp(t, a, b) {
+          return a + t * (b - a);
         }
 
-        // Circuit traces - mathematical pathways like PCB traces
-        function circuitTraces(x, y, time) {
-            const scale = 2 / waveScale;
-            const timeOffset = time * speed * 0.1;
-            
-            // Create horizontal and vertical "traces" using floor functions
-            const traceX = Math.floor(x / scale) * scale;
-            const traceY = Math.floor(y / scale) * scale;
-            
-            // Mathematical trace selection using modular arithmetic
-            const traceIdX = Math.floor(x / scale) % 3;
-            const traceIdY = Math.floor(y / scale) % 3;
-            
-            let height = 0;
-            
-            // Horizontal traces
-            if (traceIdY === 0) {
-                const signal = Math.sin((x * 0.5 + timeOffset) * Math.PI);
-                height += (signal > 0 ? amplitude * 0.8 : amplitude * 0.2);
-            }
-            
-            // Vertical traces  
-            if (traceIdX === 0) {
-                const signal = Math.cos((y * 0.3 + timeOffset * 0.7) * Math.PI);
-                height += (signal > 0 ? amplitude * 0.8 : amplitude * 0.2);
-            }
-            
-            // Via connections (intersections)
-            if (traceIdX === 0 && traceIdY === 0) {
-                height = amplitude * 1.2;
-            }
-            
-            return height;
+        grad(hash, x, y, z) {
+          const h = hash & 15;
+          const u = h < 8 ? x : y;
+          const v = h < 4 ? y : h === 12 || h === 14 ? x : z;
+          return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
         }
 
-        // Digital logic gates using XOR and AND operations
-        function digitalLogic(x, y, time) {
-            const cellSize = 4 / waveScale;
-            const timeOffset = Math.floor(time * speed);
-            
-            // Convert to grid coordinates
-            const gridX = Math.floor(x / cellSize);
-            const gridY = Math.floor(y / cellSize);
-            
-            // Digital logic operations
-            const inputA = (gridX + timeOffset) % 2;
-            const inputB = (gridY + Math.floor(timeOffset * 0.3)) % 2;
-            
-            // XOR gate behavior
-            const xorResult = inputA ^ inputB;
-            
-            // AND gate behavior  
-            const andResult = inputA & inputB;
-            
-            // Combine results based on position
-            const gateType = (gridX + gridY) % 3;
-            let output = 0;
-            
-            switch (gateType) {
-                case 0: // XOR regions
-                    output = xorResult;
-                    break;
-                case 1: // AND regions
-                    output = andResult;
-                    break;
-                case 2: // OR regions
-                    output = inputA | inputB;
-                    break;
-            }
-            
-            return output * amplitude;
+        noise(x, y, z) {
+          const X = Math.floor(x) & 255;
+          const Y = Math.floor(y) & 255;
+          const Z = Math.floor(z) & 255;
+
+          x -= Math.floor(x);
+          y -= Math.floor(y);
+          z -= Math.floor(z);
+
+          const u = this.fade(x);
+          const v = this.fade(y);
+          const w = this.fade(z);
+
+          const A = this.p[X] + Y;
+          const AA = this.p[A] + Z;
+          const AB = this.p[A + 1] + Z;
+          const B = this.p[X + 1] + Y;
+          const BA = this.p[B] + Z;
+          const BB = this.p[B + 1] + Z;
+
+          return this.lerp(
+            w,
+            this.lerp(
+              v,
+              this.lerp(
+                u,
+                this.grad(this.p[AA], x, y, z),
+                this.grad(this.p[BA], x - 1, y, z)
+              ),
+              this.lerp(
+                u,
+                this.grad(this.p[AB], x, y - 1, z),
+                this.grad(this.p[BB], x - 1, y - 1, z)
+              )
+            ),
+            this.lerp(
+              v,
+              this.lerp(
+                u,
+                this.grad(this.p[AA + 1], x, y, z - 1),
+                this.grad(this.p[BA + 1], x - 1, y, z - 1)
+              ),
+              this.lerp(
+                u,
+                this.grad(this.p[AB + 1], x, y - 1, z - 1),
+                this.grad(this.p[BB + 1], x - 1, y - 1, z - 1)
+              )
+            )
+          );
         }
 
-        // Shift registers - data moving through sequential logic
-        function shiftRegisters(x, y, time) {
-            const cellSize = 2.5 / waveScale;
-            const timeOffset = time * speed;
-            
-            // Create shift register chains
-            const chainX = Math.floor(x / cellSize);
-            const chainY = Math.floor(y / (cellSize * 4)); // Wider chains
-            
-            // Position within the chain
-            const posInChain = chainX % 8; // 8-bit shift registers
-            
-            // Shift register state - data moves right over time
-            const shiftTime = Math.floor(timeOffset * 2);
-            const bitPattern = 0b10110100; // Example 8-bit pattern
-            const shiftedPattern = ((bitPattern << shiftTime) | (bitPattern >> (8 - shiftTime))) & 0xFF;
-            
-            // Extract bit at current position
-            const bitValue = (shiftedPattern >> posInChain) & 1;
-            
-            // Clock signal affects all registers
-            const clockPhase = Math.sin(timeOffset * 4) > 0 ? 1 : 0;
-            
-            // Height based on bit value and clock
-            const baseHeight = bitValue * amplitude * 0.8;
-            const clockBoost = clockPhase * amplitude * 0.2;
-            
-            // Add inter-register spacing
-            const localY = y - (chainY * cellSize * 4 + cellSize * 2);
-            if (Math.abs(localY) > cellSize) {
-                return amplitude * 0.1; // Ground plane
-            }
-            
-            return baseHeight + clockBoost;
+        // Octave noise for more natural-looking displacement
+        octaveNoise(x, y, z, octaves = 3, persistence = 0.5, lacunarity = 2.0) {
+          let value = 0;
+          let amplitude = 1;
+          let frequency = 1;
+          let maxValue = 0;
+
+          for (let i = 0; i < octaves; i++) {
+            value +=
+              this.noise(x * frequency, y * frequency, z * frequency) *
+              amplitude;
+            maxValue += amplitude;
+            amplitude *= persistence;
+            frequency *= lacunarity;
+          }
+
+          return value / maxValue;
+        }
+      }
+
+      // Create Perlin noise instance
+      const perlin = new PerlinNoise();
+
+      // Displacement functions
+      function simpleWave(x, y, time) {
+        const freq1 = 0.15 * waveScale;
+        const freq2 = 0.08 * waveScale;
+        const timeOffset = time * speed;
+
+        const wave1 =
+          Math.sin(x * freq1 + timeOffset) *
+          Math.cos(y * freq1 + timeOffset * 0.7);
+        const wave2 =
+          Math.sin(x * freq2 - timeOffset * 0.5) *
+          Math.sin(y * freq2 + timeOffset * 0.3);
+
+        return (wave1 + wave2 * 0.5) * amplitude;
+      }
+
+      function perlinDisplacement(x, y, time) {
+        const freq = 0.02 * waveScale;
+        const timeScale = time * speed * 0.1;
+
+        return (
+          perlin.octaveNoise(x * freq, y * freq, timeScale, 3, 0.5, 2.0) *
+          amplitude *
+          2
+        );
+      }
+
+      // Quantization helper function
+      function quantizeValue(value, steps) {
+        return Math.round(value * steps) / steps;
+      }
+
+      // Quantized displacement functions
+      function quantizedWave(x, y, time) {
+        const waveValue = simpleWave(x, y, time);
+        return quantizeValue(waveValue, quantSteps);
+      }
+
+      function quantizedPerlin(x, y, time) {
+        const perlinValue = perlinDisplacement(x, y, time);
+        return quantizeValue(perlinValue, quantSteps);
+      }
+
+      // Technical radar circles pattern
+      function radarPattern(x, y, time) {
+        const centerX = 0;
+        const centerY = 0;
+        const distance = Math.sqrt(
+          (x - centerX) * (x - centerX) + (y - centerY) * (y - centerY)
+        );
+        const freq = 0.3 * waveScale;
+        const timeOffset = time * speed;
+
+        const wave = Math.sin(distance * freq - timeOffset);
+        return wave * amplitude;
+      }
+
+      // Grid pattern - creates a 3D grid of peaks and valleys
+      function gridPattern(x, y, time) {
+        const freq = 0.4 * waveScale;
+        const timeOffset = time * speed;
+
+        const gridX = Math.sin(x * freq + timeOffset);
+        const gridY = Math.sin(y * freq + timeOffset * 0.7);
+
+        return gridX * gridY * amplitude;
+      }
+
+      // Frequency bands - horizontal bands like an audio visualizer
+      function frequencyBands(x, y, time) {
+        const bands = 8;
+        const bandHeight = 5;
+        const freq = 0.2 * waveScale;
+        const timeOffset = time * speed;
+
+        const bandIndex = Math.floor(
+          (y + (bandHeight * bands) / 2) / bandHeight
+        );
+        const bandCenter =
+          bandIndex * bandHeight - (bandHeight * bands) / 2 + bandHeight / 2;
+        const distanceFromCenter = Math.abs(y - bandCenter);
+
+        if (distanceFromCenter < bandHeight / 2) {
+          const bandPhase = bandIndex * 0.5 + timeOffset;
+          const bandAmplitude =
+            Math.sin(x * freq + bandPhase) *
+            (1 - distanceFromCenter / (bandHeight / 2));
+          return bandAmplitude * amplitude;
         }
 
-        // Clock domains - synchronized timing regions
-        function clockDomains(x, y, time) {
-            const domainSize = 6 / waveScale;
-            const timeOffset = time * speed;
-            
-            // Determine clock domain
-            const domainX = Math.floor(x / domainSize);
-            const domainY = Math.floor(y / domainSize);
-            const domainId = (domainX + domainY * 3) % 4; // 4 different clock domains
-            
-            // Each domain has different clock frequency
-            const clockFreqs = [1, 2, 4, 3]; // Different frequencies
-            const clockPhase = timeOffset * clockFreqs[domainId];
-            
-            // Position within domain
-            const localX = x - (domainX * domainSize + domainSize / 2);
-            const localY = y - (domainY * domainSize + domainSize / 2);
-            
-            // Clock signal strength based on distance from domain center
-            const distFromCenter = Math.sqrt(localX * localX + localY * localY);
-            const signalStrength = Math.max(0, 1 - (distFromCenter / (domainSize / 2)));
-            
-            // Digital clock signal (square wave)
-            const clockHigh = Math.sin(clockPhase * Math.PI * 2) > 0;
-            const clockHeight = clockHigh ? amplitude : amplitude * 0.3;
-            
-            // Clock skew - slight delay based on distance from center
-            const skew = distFromCenter * 0.1;
-            const skewedClock = Math.sin((clockPhase - skew) * Math.PI * 2) > 0;
-            const finalHeight = skewedClock ? amplitude : amplitude * 0.3;
-            
-            return finalHeight * signalStrength + amplitude * 0.1;
-        }
+        return 0;
+      }
 
-        // Polynomial grid - cubic and quartic functions creating terraced landscapes
-        function polynomialGrid(x, y, time) {
-            const scale = 0.3 * waveScale;
-            const timeOffset = time * speed * 0.1;
-            
-            // Quantize to grid
-            const gridX = Math.floor(x * scale);
-            const gridY = Math.floor(y * scale);
-            
-            // Cubic polynomial combining grid coordinates
-            const cubicTerm = (gridX * gridX * gridX + gridY * gridY * gridY) * 0.001;
-            const quadraticTerm = (gridX * gridX + gridY * gridY) * 0.01;
-            
-            // Smooth time modulation (non-sinusoidal)
-            const timeModulation = (timeOffset % 4) / 4; // Linear ramp 0 to 1
-            const smoothTime = timeModulation * timeModulation * (3 - 2 * timeModulation); // Smoothstep
-            
-            // Combine polynomial terms with smooth time
-            const polynomialValue = (cubicTerm + quadraticTerm) * (1 + smoothTime);
-            
-            return (polynomialValue % 1) * amplitude;
-        }
+      // Spiral wave pattern
+      function spiralPattern(x, y, time) {
+        const distance = Math.sqrt(x * x + y * y);
+        const angle = Math.atan2(y, x);
+        const spiralFreq = 0.3 * waveScale;
+        const timeOffset = time * speed;
 
-        // Distance fields - Manhattan and Chebyshev distances from grid points
-        function distanceFields(x, y, time) {
-            const gridSize = 4 / waveScale;
-            const timeOffset = time * speed * 0.2; // Increased speed multiplier
-            
-            // Moving grid points - shift grid over time
-            const shiftX = (timeOffset * 2) % gridSize;
-            const shiftY = (timeOffset * 1.3) % gridSize;
-            
-            // Find nearest grid point with movement
-            const gridX = Math.round((x - shiftX) / gridSize) * gridSize + shiftX;
-            const gridY = Math.round((y - shiftY) / gridSize) * gridSize + shiftY;
-            
-            // Calculate different distance metrics
-            const manhattanDist = Math.abs(x - gridX) + Math.abs(y - gridY); // Diamond pattern
-            const chebyshevDist = Math.max(Math.abs(x - gridX), Math.abs(y - gridY)); // Square pattern
-            const euclideanDist = Math.sqrt((x - gridX) * (x - gridX) + (y - gridY) * (y - gridY));
-            
-            // Smooth transition between distance types with faster cycling
-            const transitionPhase = (timeOffset * 0.3) % 3; // Faster transitions
-            let distance;
-            
-            if (transitionPhase < 1) {
-                // Smooth blend between manhattan and chebyshev
-                const blend = transitionPhase;
-                distance = manhattanDist * (1 - blend) + chebyshevDist * blend;
-            } else if (transitionPhase < 2) {
-                // Smooth blend between chebyshev and euclidean
-                const blend = transitionPhase - 1;
-                distance = chebyshevDist * (1 - blend) + euclideanDist * blend;
-            } else {
-                // Smooth blend between euclidean and manhattan
-                const blend = transitionPhase - 2;
-                distance = euclideanDist * (1 - blend) + manhattanDist * blend;
-            }
-            
-            // Add pulsing effect to the pattern
-            const pulsePhase = timeOffset * 0.8;
-            const pulse = 0.7 + 0.3 * (pulsePhase % 1); // Pulse between 0.7 and 1.0
-            
-            // Invert and scale distance to create height field
-            const normalizedDist = distance / (gridSize * 0.7); // Adjusted scaling
-            const height = Math.max(0, 1 - normalizedDist) * pulse;
-            
-            return height * amplitude;
-        }
+        const spiral = Math.sin(distance * spiralFreq - angle * 3 + timeOffset);
+        return spiral * amplitude;
+      }
 
-        // Smooth modular - custom smooth modulo function without sine waves
-        function smoothModular(x, y, time) {
-            const cellSize = 3 / waveScale;
-            const timeOffset = time * speed * 0.1;
-            
-            // Create smooth modulo using polynomial interpolation
-            function smoothMod(value, modulus) {
-                const quotient = Math.floor(value / modulus);
-                const remainder = value - quotient * modulus;
-                const normalizedRemainder = remainder / modulus;
-                
-                // Cubic interpolation for smooth transitions
-                return normalizedRemainder * normalizedRemainder * (3 - 2 * normalizedRemainder);
-            }
-            
-            // Apply smooth modulo to coordinates
-            const smoothX = smoothMod(x + timeOffset, cellSize);
-            const smoothY = smoothMod(y + timeOffset * 0.7, cellSize);
-            
-            // Combine with polynomial blending
-            const combined = smoothX * smoothY + (smoothX + smoothY) * 0.5;
-            
-            // Create stepped levels using power functions
-            const stepped = Math.pow(combined, 2 + timeOffset % 2);
-            
-            return stepped * amplitude;
-        }
+      // Checkerboard pattern with animated height
+      function checkerboardPattern(x, y, time) {
+        const cellSize = 2 / waveScale;
+        const timeOffset = time * speed;
 
-        // Exponential grid - inverse square law and exponential decay from grid points
-        function exponentialGrid(x, y, time) {
-            const gridSpacing = 4 / waveScale; // Reduced spacing for better visibility
-            const timeOffset = time * speed * 0.2; // Increased time multiplier
-            
-            let totalInfluence = 0;
-            
-            // Reduced grid for better performance and visibility
-            for (let gx = -1; gx <= 1; gx++) {
-                for (let gy = -1; gy <= 1; gy++) {
-                    const pointX = gx * gridSpacing;
-                    const pointY = gy * gridSpacing;
-                    const distance = Math.sqrt((x - pointX) * (x - pointX) + (y - pointY) * (y - pointY));
-                    
-                    // Stronger exponential decay with better scaling
-                    const influence = 3 / (1 + distance * distance * 0.05); // Increased base influence
-                    
-                    // Time-based modulation using power functions
-                    const timePhase = (timeOffset * 0.5 + gx * 0.3 + gy * 0.7) % 2;
-                    const timeMod = 0.3 + 0.7 * Math.pow(Math.abs(1 - timePhase), 1.2); // Smoother, more visible modulation
-                    
-                    totalInfluence += influence * timeMod;
-                }
-            }
-            
-            // Better scaling for visibility
-            const scaled = Math.min(totalInfluence * 0.3, 1); // Clamped to prevent overflow
-            
-            return scaled * amplitude;
-        }
+        const cellX = Math.floor(x / cellSize);
+        const cellY = Math.floor(y / cellSize);
+        const isEven = (cellX + cellY) % 2 === 0;
 
-        // Mandelbrot field - complex plane iteration effects across the entire surface
-        function mandelbrotField(x, y, time) {
-            const scale = 0.1 * waveScale;
-            const timeOffset = time * speed * 0.1;
-            
-            // Map coordinates to complex plane
-            const cx = x * scale;
-            const cy = y * scale;
-            
-            // Animated Julia set parameter
-            const juliaX = Math.cos(timeOffset * 0.7) * 0.3;
-            const juliaY = Math.cos(timeOffset * 0.5) * 0.3;
-            
-            // Mandelbrot iteration with time-varying escape threshold
-            let zx = cx;
-            let zy = cy;
-            let iteration = 0;
-            const maxIterations = 8; // Keep low for performance
-            const escapeRadius = 2 + Math.cos(timeOffset) * 0.5;
-            
-            while (iteration < maxIterations && (zx * zx + zy * zy) < escapeRadius * escapeRadius) {
-                const tempX = zx * zx - zy * zy + juliaX;
-                zy = 2 * zx * zy + juliaY;
-                zx = tempX;
-                iteration++;
-            }
-            
-            // Convert iteration count to height field
-            const normalizedIterations = iteration / maxIterations;
-            
-            // Smooth interpolation for continuous field
-            if (iteration < maxIterations) {
-                const finalMagnitude = Math.sqrt(zx * zx + zy * zy);
-                const smoothed = iteration + 1 - Math.log(Math.log(finalMagnitude)) / Math.log(2);
-                return (smoothed / maxIterations) * amplitude;
-            }
-            
-            return normalizedIterations * amplitude;
-        }
+        const wave = Math.sin(timeOffset * 2);
+        return (isEven ? wave : -wave) * amplitude;
+      }
 
-        // Voronoi field - distance to nearest seed points creates cellular patterns
-        function voronoiField(x, y, time) {
-            const timeOffset = time * speed * 0.1;
-            const seedSpacing = 6 / waveScale;
-            
-            // Generate moving seed points
-            const seeds = [];
-            for (let i = -2; i <= 2; i++) {
-                for (let j = -2; j <= 2; j++) {
-                    const seedX = i * seedSpacing + Math.cos(timeOffset + i * 0.7) * 1.5;
-                    const seedY = j * seedSpacing + Math.cos(timeOffset * 0.8 + j * 1.1) * 1.5;
-                    seeds.push({ x: seedX, y: seedY, id: i * 5 + j });
-                }
-            }
-            
-            // Find distances to all seeds
-            let minDist1 = Infinity;
-            let minDist2 = Infinity;
-            
-            for (const seed of seeds) {
-                const dist = Math.sqrt((x - seed.x) * (x - seed.x) + (y - seed.y) * (y - seed.y));
-                if (dist < minDist1) {
-                    minDist2 = minDist1;
-                    minDist1 = dist;
-                } else if (dist < minDist2) {
-                    minDist2 = dist;
-                }
-            }
-            
-            // Create height field based on relative distances
-            const voronoiValue = (minDist2 - minDist1) / seedSpacing;
-            
-            // Additional field based on distance to nearest seed
-            const fieldValue = 1 / (1 + minDist1 * minDist1 * 0.02);
-            
-            return (voronoiValue * 0.3 + fieldValue * 0.7) * amplitude;
-        }
+      // Multiple ripples from different points
+      function multiRipples(x, y, time) {
+        const timeOffset = time * speed;
+        const freq = 0.4 * waveScale;
 
-        // Prime spiral - mathematical properties of prime numbers create field distortions
-        function primeSpiral(x, y, time) {
-            const scale = 0.3 * waveScale;
-            const timeOffset = time * speed * 0.1;
-            
-            // Convert to polar-like coordinates
-            const distance = Math.sqrt(x * x + y * y) * scale;
-            const angle = Math.atan2(y, x);
-            
-            // Ulam spiral mapping
-            const spiralRadius = distance + timeOffset;
-            const spiralN = Math.floor(spiralRadius * spiralRadius / (4 * Math.PI));
-            
-            // Simple primality test (optimized for real-time)
-            function isPrimeish(n) {
-                if (n < 2) return false;
-                if (n === 2 || n === 3) return true;
-                if (n % 2 === 0 || n % 3 === 0) return false;
-                
-                // Check only a few divisors for performance
-                for (let i = 5; i * i <= n && i < 20; i += 6) {
-                    if (n % i === 0 || n % (i + 2) === 0) return false;
-                }
-                return true;
-            }
-            
-            // Create field based on prime density in local area
-            let primeCount = 0;
-            const checkRadius = 5;
-            for (let i = 0; i < checkRadius; i++) {
-                if (isPrimeish(spiralN + i)) primeCount++;
-            }
-            
-            const primeDensity = primeCount / checkRadius;
-            
-            // Modulate by position and create continuous field
-            const positionMod = (Math.abs(x) + Math.abs(y)) * scale % 1;
-            const field = primeDensity * (0.5 + 0.5 * positionMod);
-            
-            return field * amplitude;
-        }
+        // Multiple ripple sources
+        const sources = [
+          { x: -5, y: -5, phase: 0 },
+          { x: 5, y: 5, phase: Math.PI },
+          { x: -5, y: 5, phase: Math.PI / 2 },
+          { x: 5, y: -5, phase: (3 * Math.PI) / 2 },
+        ];
 
-        // Crystal lattice - mathematical lattice structures create geometric field distortions
-        function crystalLattice(x, y, time) {
-            const scale = 0.2 * waveScale;
-            const timeOffset = time * speed * 0.05;
-            
-            // Hexagonal lattice basis vectors
-            const a1x = 1;
-            const a1y = 0;
-            const a2x = 0.5;
-            const a2y = Math.sqrt(3) / 2;
-            
-            // Transform coordinates to lattice space
-            const latticeX = (x * scale) + timeOffset;
-            const latticeY = (y * scale) + timeOffset * 0.7;
-            
-            // Find lattice coordinates
-            const u = (latticeX * a2y - latticeY * a2x) / (a1x * a2y - a1y * a2x);
-            const v = (latticeY * a1x - latticeX * a1y) / (a1x * a2y - a1y * a2x);
-            
-            // Quantize to lattice points
-            const latticeU = Math.round(u);
-            const latticeV = Math.round(v);
-            
-            // Distance to nearest lattice point
-            const nearestX = latticeU * a1x + latticeV * a2x;
-            const nearestY = latticeU * a1y + latticeV * a2y;
-            const distToLattice = Math.sqrt((latticeX - nearestX) * (latticeX - nearestX) + 
-                                          (latticeY - nearestY) * (latticeY - nearestY));
-            
-            // Create field based on lattice structure
-            const latticeField = Math.exp(-distToLattice * distToLattice * 8);
-            
-            // Miller indices pattern (crystallographic planes)
-            const h = 2;
-            const k = 1;
-            const l = 1;
-            const planeSpacing = 2 / Math.sqrt(h * h + k * k + l * l);
-            const planePhase = (latticeX * h + latticeY * k + timeOffset * l) / planeSpacing;
-            const planeField = Math.abs((planePhase % 1) - 0.5) * 2; // Sawtooth wave
-            
-            // Combine lattice and plane effects
-            return (latticeField * 0.7 + planeField * 0.3) * amplitude;
-        }
-
-        // Spherical projection - transforms flat plane into spherical surface
-        function sphericalProjection(x, y, time) {
-            const radius = 8 / waveScale;
-            const timeOffset = time * speed * 0.1;
-            
-            // Distance from center
-            const r = Math.sqrt(x * x + y * y);
-            
-            // Spherical projection: z = sqrt(R² - r²) for r < R, otherwise fade out
-            let sphereHeight = 0;
-            if (r < radius) {
-                sphereHeight = Math.sqrt(radius * radius - r * r);
-            } else {
-                // Smooth falloff outside sphere
-                const falloff = Math.max(0, 1 - (r - radius) / 2);
-                sphereHeight = falloff * falloff;
-            }
-            
-            // Add time-based perturbations using non-trigonometric functions
-            const timeModulation = (timeOffset % 2) / 2; // Linear ramp 0 to 1
-            const smoothTime = timeModulation * timeModulation * (3 - 2 * timeModulation); // Smoothstep
-            
-            // Latitude/longitude-like perturbations
-            const latitude = Math.acos(Math.min(1, r / radius));
-            const longitude = Math.atan2(y, x);
-            
-            // Perturbation based on spherical harmonics-like functions
-            const perturbation = Math.pow(Math.abs(latitude % 1 - 0.5), 1.5) * 
-                               Math.pow(Math.abs((longitude + timeOffset) % 1 - 0.5), 1.5);
-            
-            return (sphereHeight / radius + perturbation * 0.3 * smoothTime) * amplitude;
-        }
-
-        // Paraboloid surface - mathematical paraboloid z = x² + y²
-        function paraboloidSurface(x, y, time) {
-            const scale = 0.15 * waveScale;
-            const timeOffset = time * speed * 0.1;
-            
-            // Basic paraboloid equation
-            const scaledX = x * scale;
-            const scaledY = y * scale;
-            const baseHeight = scaledX * scaledX + scaledY * scaledY;
-            
-            // Time-based rotation of the paraboloid
-            const rotationAngle = timeOffset * 0.5;
-            const cosTheta = Math.cos(rotationAngle);
-            const sinTheta = Math.sin(rotationAngle);
-            
-            const rotatedX = scaledX * cosTheta - scaledY * sinTheta;
-            const rotatedY = scaledX * sinTheta + scaledY * cosTheta;
-            
-            // Rotated paraboloid
-            const rotatedHeight = rotatedX * rotatedX + rotatedY * rotatedY;
-            
-            // Blend between orientations
-            const blendFactor = (timeOffset % 4) / 4;
-            const smoothBlend = blendFactor * blendFactor * (3 - 2 * blendFactor);
-            
-            const finalHeight = baseHeight * (1 - smoothBlend) + rotatedHeight * smoothBlend;
-            
-            // Normalize and scale
-            return Math.min(finalHeight * 0.5, 1) * amplitude;
-        }
-
-        // Hyperboloid surface - mathematical hyperboloid z² = x² + y² + 1
-        function hyperboloidSurface(x, y, time) {
-            const scale = 0.2 * waveScale;
-            const timeOffset = time * speed * 0.1;
-            
-            // Hyperboloid equation: z = ±sqrt(x² + y² + offset²)
-            const scaledX = x * scale;
-            const scaledY = y * scale;
-            const offset = 1 + Math.cos(timeOffset) * 0.5; // Varying waist size
-            
-            // One sheet hyperboloid
-            const rSquared = scaledX * scaledX + scaledY * scaledY;
-            const hyperboloidZ = Math.sqrt(rSquared + offset * offset);
-            
-            // Create both positive and negative sheets based on position
-            const sheetSelector = Math.floor((x + y + timeOffset * 2) / 4) % 2;
-            const height = sheetSelector === 0 ? hyperboloidZ : -hyperboloidZ + 2 * offset;
-            
-            // Smooth the transition and normalize
-            const smoothHeight = (height - offset) / offset; // Center around 0
-            
-            // Apply time-based warping
-            const warpFactor = (timeOffset % 3) / 3;
-            const warpedHeight = smoothHeight * (1 + warpFactor * 0.5);
-            
-            return (warpedHeight + 1) * 0.5 * amplitude; // Shift to positive range
-        }
-
-        // Toroidal field - creates torus-like mathematical transformations
-        function toroidalField(x, y, time) {
-            const majorRadius = 6 / waveScale; // Major radius of torus
-            const minorRadius = 3 / waveScale; // Minor radius of torus
-            const timeOffset = time * speed * 0.1;
-            
-            // Distance from center (rho in cylindrical coordinates)
-            const rho = Math.sqrt(x * x + y * y);
-            
-            // Distance from the major radius ring
-            const distanceFromMajorRadius = Math.abs(rho - majorRadius);
-            
-            // Toroidal height calculation
-            let toroidHeight = 0;
-            if (distanceFromMajorRadius < minorRadius) {
-                // Inside the torus minor radius
-                toroidHeight = Math.sqrt(minorRadius * minorRadius - distanceFromMajorRadius * distanceFromMajorRadius);
-            } else {
-                // Outside torus - smooth falloff
-                const falloff = Math.max(0, 1 - (distanceFromMajorRadius - minorRadius) / 2);
-                toroidHeight = falloff * falloff * minorRadius;
-            }
-            
-            // Add toroidal perturbations
-            const toroidalAngle = Math.atan2(distanceFromMajorRadius, 0); // Poloidal angle
-            const azimuthalAngle = Math.atan2(y, x); // Toroidal angle
-            
-            // Time-varying surface perturbations
-            const poloidalPerturbation = Math.pow(Math.abs((toroidalAngle + timeOffset) % 1 - 0.5), 1.2);
-            const azimuthalPerturbation = Math.pow(Math.abs((azimuthalAngle * 3 + timeOffset * 0.7) % 1 - 0.5), 1.5);
-            
-            const perturbation = (poloidalPerturbation + azimuthalPerturbation) * 0.3;
-            
-            return (toroidHeight / minorRadius + perturbation) * amplitude;
-        }
-
-        function getDisplacement(x, y, time) {
-            switch (displacementType) {
-                case 'perlin':
-                    return perlinDisplacement(x, y, time);
-                case 'quantizedWave':
-                    return quantizedWave(x, y, time);
-                case 'quantizedPerlin':
-                    return quantizedPerlin(x, y, time);
-                case 'radar':
-                    return radarPattern(x, y, time);
-                case 'grid':
-                    return gridPattern(x, y, time);
-                case 'frequencyBands':
-                    return frequencyBands(x, y, time);
-                case 'spiral':
-                    return spiralPattern(x, y, time);
-                case 'checkerboard':
-                    return checkerboardPattern(x, y, time);
-                case 'ripples':
-                    return multiRipples(x, y, time);
-                case 'fractal':
-                    return fractalPattern(x, y, time);
-                case 'diagonal':
-                    return diagonalWaves(x, y, time);
-                case 'circuitTraces':
-                    return circuitTraces(x, y, time);
-                case 'logicGates':
-                    return digitalLogic(x, y, time);
-                case 'shiftRegisters':
-                    return shiftRegisters(x, y, time);
-                case 'clockDomains':
-                    return clockDomains(x, y, time);
-                case 'polynomialGrid':
-                    return polynomialGrid(x, y, time);
-                case 'distanceFields':
-                    return distanceFields(x, y, time);
-                case 'smoothModular':
-                    return smoothModular(x, y, time);
-                case 'exponentialGrid':
-                    return exponentialGrid(x, y, time);
-                case 'mandelbrot':
-                    return mandelbrotField(x, y, time);
-                case 'voronoi':
-                    return voronoiField(x, y, time);
-                case 'primeSpiral':
-                    return primeSpiral(x, y, time);
-                case 'crystalline':
-                    return crystalLattice(x, y, time);
-                case 'sphericalProj':
-                    return sphericalProjection(x, y, time);
-                case 'paraboloid':
-                    return paraboloidSurface(x, y, time);
-                case 'hyperboloid':
-                    return hyperboloidSurface(x, y, time);
-                case 'toroidal':
-                    return toroidalField(x, y, time);
-                default:
-                    return simpleWave(x, y, time);
-            }
-        }
-
-        function createDotMatrix() {
-            if (pointCloud) {
-                scene.remove(pointCloud);
-                geometry.dispose();
-                material.dispose();
-            }
-
-            points = [];
-            const positions = [];
-
-            for (let x = 0; x < gridSize; x++) {
-                for (let y = 0; y < gridSize; y++) {
-                    const worldX = (x - gridSize / 2) * spacing;
-                    const worldY = (y - gridSize / 2) * spacing;
-                    const worldZ = getDisplacement(worldX * 2, worldY * 2, time);
-
-                    positions.push(worldX, worldY, worldZ);
-                    points.push({ x: worldX, y: worldY });
-                }
-            }
-
-            geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-
-            material = new THREE.PointsMaterial({
-                size: dotSize,
-                map: circleTexture,
-                color: 0xffffff,
-                transparent: false,
-                sizeAttenuation: false // Keep dots same size regardless of distance
-            });
-
-            pointCloud = new THREE.Points(geometry, material);
-            scene.add(pointCloud);
-        }
-
-        function updateDotMatrix() {
-            if (!geometry) return;
-
-            const positions = geometry.attributes.position.array;
-
-            for (let i = 0; i < points.length; i++) {
-                const point = points[i];
-                const newZ = getDisplacement(point.x * 2, point.y * 2, time);
-                positions[i * 3 + 2] = newZ;
-            }
-
-            geometry.attributes.position.needsUpdate = true;
-        }
-
-        // Camera setup and controls
-        camera.position.set(0, -10, 8);
-        camera.lookAt(0, 0, 0);
-        
-        const controls = new SimpleControls(camera, renderer.domElement);
-
-        // Utility function to create synchronized control pairs
-        function createControlPair(sliderId, numberId, callback) {
-            const slider = document.getElementById(sliderId);
-            const numberInput = document.getElementById(numberId);
-            
-            slider.addEventListener('input', (e) => {
-                const value = parseFloat(e.target.value);
-                numberInput.value = value;
-                callback(value);
-            });
-            
-            numberInput.addEventListener('input', (e) => {
-                let value = parseFloat(e.target.value);
-                const min = parseFloat(numberInput.min);
-                const max = parseFloat(numberInput.max);
-                
-                // Clamp value to valid range
-                if (value < min) value = min;
-                if (value > max) value = max;
-                
-                numberInput.value = value;
-                slider.value = value;
-                callback(value);
-            });
-            
-            // Handle blur event to ensure valid values
-            numberInput.addEventListener('blur', (e) => {
-                if (isNaN(parseFloat(e.target.value)) || e.target.value === '') {
-                    e.target.value = slider.value;
-                }
-            });
-        }
-
-        // Set up all control pairs
-        createControlPair('amplitude', 'amplitudeNum', (value) => {
-            amplitude = value;
+        let totalWave = 0;
+        sources.forEach((source) => {
+          const distance = Math.sqrt(
+            (x - source.x) * (x - source.x) + (y - source.y) * (y - source.y)
+          );
+          const wave = Math.sin(distance * freq - timeOffset + source.phase);
+          totalWave += wave / sources.length;
         });
 
-        createControlPair('speed', 'speedNum', (value) => {
-            speed = value;
-        });
+        return totalWave * amplitude;
+      }
 
-        createControlPair('waveScale', 'waveScaleNum', (value) => {
-            waveScale = value;
-        });
+      // Fractal-like noise pattern
+      function fractalPattern(x, y, time) {
+        const timeOffset = time * speed * 0.1;
+        const baseFreq = 0.05 * waveScale;
 
-        createControlPair('quantSteps', 'quantStepsNum', (value) => {
-            quantSteps = value;
-        });
+        let total = 0;
+        let amplitude_local = 1;
+        let frequency = baseFreq;
 
-        createControlPair('gridSize', 'gridSizeNum', (value) => {
-            gridSize = parseInt(value);
-            createDotMatrix();
-        });
-
-        createControlPair('dotSize', 'dotSizeNum', (value) => {
-            dotSize = value;
-            if (material) material.size = dotSize;
-        });
-
-        createControlPair('zoom', 'zoomNum', (value) => {
-            controls.updateZoom(value);
-        });
-
-        createControlPair('rotationSpeed', 'rotationSpeedNum', (value) => {
-            // Rotation speed is used in the animation system
-        });
-
-        // Displacement type selector
-        document.getElementById('displacementType').addEventListener('change', (e) => {
-            displacementType = e.target.value;
-        });
-
-        // Global rotation functions
-        window.rotateCamera = function(axis, degrees) {
-            controls.animateRotation(axis, degrees);
-        };
-
-        window.resetCamera = function() {
-            controls.resetView();
-        };
-
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            time += 0.01;
-            
-            // Update camera animation
-            controls.updateAnimation();
-            
-            updateDotMatrix();
-            renderer.render(scene, camera);
+        for (let i = 0; i < 4; i++) {
+          total +=
+            perlin.noise(x * frequency, y * frequency, timeOffset) *
+            amplitude_local;
+          amplitude_local *= 0.5;
+          frequency *= 2;
         }
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            const aspect = window.innerWidth / window.innerHeight;
-            const zoom = parseFloat(document.getElementById('zoom').value);
-            
-            camera.left = -zoom * aspect;
-            camera.right = zoom * aspect;
-            camera.top = zoom;
-            camera.bottom = -zoom;
-            camera.updateProjectionMatrix();
-            
-            renderer.setSize(window.innerWidth, window.innerHeight);
+        return total * amplitude;
+      }
+
+      // Diagonal wave pattern
+      function diagonalWaves(x, y, time) {
+        const freq = 0.2 * waveScale;
+        const timeOffset = time * speed;
+
+        const diagonal1 = Math.sin((x + y) * freq + timeOffset);
+        const diagonal2 = Math.sin((x - y) * freq + timeOffset * 0.7);
+
+        return (diagonal1 + diagonal2 * 0.5) * amplitude;
+      }
+
+      // Circuit traces - mathematical pathways like PCB traces
+      function circuitTraces(x, y, time) {
+        const scale = 2 / waveScale;
+        const timeOffset = time * speed * 0.1;
+
+        // Create horizontal and vertical "traces" using floor functions
+        const traceX = Math.floor(x / scale) * scale;
+        const traceY = Math.floor(y / scale) * scale;
+
+        // Mathematical trace selection using modular arithmetic
+        const traceIdX = Math.floor(x / scale) % 3;
+        const traceIdY = Math.floor(y / scale) % 3;
+
+        let height = 0;
+
+        // Horizontal traces
+        if (traceIdY === 0) {
+          const signal = Math.sin((x * 0.5 + timeOffset) * Math.PI);
+          height += signal > 0 ? amplitude * 0.8 : amplitude * 0.2;
+        }
+
+        // Vertical traces
+        if (traceIdX === 0) {
+          const signal = Math.cos((y * 0.3 + timeOffset * 0.7) * Math.PI);
+          height += signal > 0 ? amplitude * 0.8 : amplitude * 0.2;
+        }
+
+        // Via connections (intersections)
+        if (traceIdX === 0 && traceIdY === 0) {
+          height = amplitude * 1.2;
+        }
+
+        return height;
+      }
+
+      // Digital logic gates using XOR and AND operations
+      function digitalLogic(x, y, time) {
+        const cellSize = 4 / waveScale;
+        const timeOffset = Math.floor(time * speed);
+
+        // Convert to grid coordinates
+        const gridX = Math.floor(x / cellSize);
+        const gridY = Math.floor(y / cellSize);
+
+        // Digital logic operations
+        const inputA = (gridX + timeOffset) % 2;
+        const inputB = (gridY + Math.floor(timeOffset * 0.3)) % 2;
+
+        // XOR gate behavior
+        const xorResult = inputA ^ inputB;
+
+        // AND gate behavior
+        const andResult = inputA & inputB;
+
+        // Combine results based on position
+        const gateType = (gridX + gridY) % 3;
+        let output = 0;
+
+        switch (gateType) {
+          case 0: // XOR regions
+            output = xorResult;
+            break;
+          case 1: // AND regions
+            output = andResult;
+            break;
+          case 2: // OR regions
+            output = inputA | inputB;
+            break;
+        }
+
+        return output * amplitude;
+      }
+
+      // Shift registers - data moving through sequential logic
+      function shiftRegisters(x, y, time) {
+        const cellSize = 2.5 / waveScale;
+        const timeOffset = time * speed;
+
+        // Create shift register chains
+        const chainX = Math.floor(x / cellSize);
+        const chainY = Math.floor(y / (cellSize * 4)); // Wider chains
+
+        // Position within the chain
+        const posInChain = chainX % 8; // 8-bit shift registers
+
+        // Shift register state - data moves right over time
+        const shiftTime = Math.floor(timeOffset * 2);
+        const bitPattern = 0b10110100; // Example 8-bit pattern
+        const shiftedPattern =
+          ((bitPattern << shiftTime) | (bitPattern >> (8 - shiftTime))) & 0xff;
+
+        // Extract bit at current position
+        const bitValue = (shiftedPattern >> posInChain) & 1;
+
+        // Clock signal affects all registers
+        const clockPhase = Math.sin(timeOffset * 4) > 0 ? 1 : 0;
+
+        // Height based on bit value and clock
+        const baseHeight = bitValue * amplitude * 0.8;
+        const clockBoost = clockPhase * amplitude * 0.2;
+
+        // Add inter-register spacing
+        const localY = y - (chainY * cellSize * 4 + cellSize * 2);
+        if (Math.abs(localY) > cellSize) {
+          return amplitude * 0.1; // Ground plane
+        }
+
+        return baseHeight + clockBoost;
+      }
+
+      // Clock domains - synchronized timing regions
+      function clockDomains(x, y, time) {
+        const domainSize = 6 / waveScale;
+        const timeOffset = time * speed;
+
+        // Determine clock domain
+        const domainX = Math.floor(x / domainSize);
+        const domainY = Math.floor(y / domainSize);
+        const domainId = (domainX + domainY * 3) % 4; // 4 different clock domains
+
+        // Each domain has different clock frequency
+        const clockFreqs = [1, 2, 4, 3]; // Different frequencies
+        const clockPhase = timeOffset * clockFreqs[domainId];
+
+        // Position within domain
+        const localX = x - (domainX * domainSize + domainSize / 2);
+        const localY = y - (domainY * domainSize + domainSize / 2);
+
+        // Clock signal strength based on distance from domain center
+        const distFromCenter = Math.sqrt(localX * localX + localY * localY);
+        const signalStrength = Math.max(
+          0,
+          1 - distFromCenter / (domainSize / 2)
+        );
+
+        // Digital clock signal (square wave)
+        const clockHigh = Math.sin(clockPhase * Math.PI * 2) > 0;
+        const clockHeight = clockHigh ? amplitude : amplitude * 0.3;
+
+        // Clock skew - slight delay based on distance from center
+        const skew = distFromCenter * 0.1;
+        const skewedClock = Math.sin((clockPhase - skew) * Math.PI * 2) > 0;
+        const finalHeight = skewedClock ? amplitude : amplitude * 0.3;
+
+        return finalHeight * signalStrength + amplitude * 0.1;
+      }
+
+      // Polynomial grid - cubic and quartic functions creating terraced landscapes
+      function polynomialGrid(x, y, time) {
+        const scale = 0.3 * waveScale;
+        const timeOffset = time * speed * 0.1;
+
+        // Quantize to grid
+        const gridX = Math.floor(x * scale);
+        const gridY = Math.floor(y * scale);
+
+        // Cubic polynomial combining grid coordinates
+        const cubicTerm =
+          (gridX * gridX * gridX + gridY * gridY * gridY) * 0.001;
+        const quadraticTerm = (gridX * gridX + gridY * gridY) * 0.01;
+
+        // Smooth time modulation (non-sinusoidal)
+        const timeModulation = (timeOffset % 4) / 4; // Linear ramp 0 to 1
+        const smoothTime =
+          timeModulation * timeModulation * (3 - 2 * timeModulation); // Smoothstep
+
+        // Combine polynomial terms with smooth time
+        const polynomialValue = (cubicTerm + quadraticTerm) * (1 + smoothTime);
+
+        return (polynomialValue % 1) * amplitude;
+      }
+
+      // Distance fields - Manhattan and Chebyshev distances from grid points
+      function distanceFields(x, y, time) {
+        const gridSize = 4 / waveScale;
+        const timeOffset = time * speed * 0.2; // Increased speed multiplier
+
+        // Moving grid points - shift grid over time
+        const shiftX = (timeOffset * 2) % gridSize;
+        const shiftY = (timeOffset * 1.3) % gridSize;
+
+        // Find nearest grid point with movement
+        const gridX = Math.round((x - shiftX) / gridSize) * gridSize + shiftX;
+        const gridY = Math.round((y - shiftY) / gridSize) * gridSize + shiftY;
+
+        // Calculate different distance metrics
+        const manhattanDist = Math.abs(x - gridX) + Math.abs(y - gridY); // Diamond pattern
+        const chebyshevDist = Math.max(
+          Math.abs(x - gridX),
+          Math.abs(y - gridY)
+        ); // Square pattern
+        const euclideanDist = Math.sqrt(
+          (x - gridX) * (x - gridX) + (y - gridY) * (y - gridY)
+        );
+
+        // Smooth transition between distance types with faster cycling
+        const transitionPhase = (timeOffset * 0.3) % 3; // Faster transitions
+        let distance;
+
+        if (transitionPhase < 1) {
+          // Smooth blend between manhattan and chebyshev
+          const blend = transitionPhase;
+          distance = manhattanDist * (1 - blend) + chebyshevDist * blend;
+        } else if (transitionPhase < 2) {
+          // Smooth blend between chebyshev and euclidean
+          const blend = transitionPhase - 1;
+          distance = chebyshevDist * (1 - blend) + euclideanDist * blend;
+        } else {
+          // Smooth blend between euclidean and manhattan
+          const blend = transitionPhase - 2;
+          distance = euclideanDist * (1 - blend) + manhattanDist * blend;
+        }
+
+        // Add pulsing effect to the pattern
+        const pulsePhase = timeOffset * 0.8;
+        const pulse = 0.7 + 0.3 * (pulsePhase % 1); // Pulse between 0.7 and 1.0
+
+        // Invert and scale distance to create height field
+        const normalizedDist = distance / (gridSize * 0.7); // Adjusted scaling
+        const height = Math.max(0, 1 - normalizedDist) * pulse;
+
+        return height * amplitude;
+      }
+
+      // Smooth modular - custom smooth modulo function without sine waves
+      function smoothModular(x, y, time) {
+        const cellSize = 3 / waveScale;
+        const timeOffset = time * speed * 0.1;
+
+        // Create smooth modulo using polynomial interpolation
+        function smoothMod(value, modulus) {
+          const quotient = Math.floor(value / modulus);
+          const remainder = value - quotient * modulus;
+          const normalizedRemainder = remainder / modulus;
+
+          // Cubic interpolation for smooth transitions
+          return (
+            normalizedRemainder *
+            normalizedRemainder *
+            (3 - 2 * normalizedRemainder)
+          );
+        }
+
+        // Apply smooth modulo to coordinates
+        const smoothX = smoothMod(x + timeOffset, cellSize);
+        const smoothY = smoothMod(y + timeOffset * 0.7, cellSize);
+
+        // Combine with polynomial blending
+        const combined = smoothX * smoothY + (smoothX + smoothY) * 0.5;
+
+        // Create stepped levels using power functions
+        const stepped = Math.pow(combined, 2 + (timeOffset % 2));
+
+        return stepped * amplitude;
+      }
+
+      // Exponential grid - inverse square law and exponential decay from grid points
+      function exponentialGrid(x, y, time) {
+        const gridSpacing = 4 / waveScale; // Reduced spacing for better visibility
+        const timeOffset = time * speed * 0.2; // Increased time multiplier
+
+        let totalInfluence = 0;
+
+        // Reduced grid for better performance and visibility
+        for (let gx = -1; gx <= 1; gx++) {
+          for (let gy = -1; gy <= 1; gy++) {
+            const pointX = gx * gridSpacing;
+            const pointY = gy * gridSpacing;
+            const distance = Math.sqrt(
+              (x - pointX) * (x - pointX) + (y - pointY) * (y - pointY)
+            );
+
+            // Stronger exponential decay with better scaling
+            const influence = 3 / (1 + distance * distance * 0.05); // Increased base influence
+
+            // Time-based modulation using power functions
+            const timePhase = (timeOffset * 0.5 + gx * 0.3 + gy * 0.7) % 2;
+            const timeMod = 0.3 + 0.7 * Math.pow(Math.abs(1 - timePhase), 1.2); // Smoother, more visible modulation
+
+            totalInfluence += influence * timeMod;
+          }
+        }
+
+        // Better scaling for visibility
+        const scaled = Math.min(totalInfluence * 0.3, 1); // Clamped to prevent overflow
+
+        return scaled * amplitude;
+      }
+
+      // Mandelbrot field - complex plane iteration effects across the entire surface
+      function mandelbrotField(x, y, time) {
+        const scale = 0.1 * waveScale;
+        const timeOffset = time * speed * 0.1;
+
+        // Map coordinates to complex plane
+        const cx = x * scale;
+        const cy = y * scale;
+
+        // Animated Julia set parameter
+        const juliaX = Math.cos(timeOffset * 0.7) * 0.3;
+        const juliaY = Math.cos(timeOffset * 0.5) * 0.3;
+
+        // Mandelbrot iteration with time-varying escape threshold
+        let zx = cx;
+        let zy = cy;
+        let iteration = 0;
+        const maxIterations = 8; // Keep low for performance
+        const escapeRadius = 2 + Math.cos(timeOffset) * 0.5;
+
+        while (
+          iteration < maxIterations &&
+          zx * zx + zy * zy < escapeRadius * escapeRadius
+        ) {
+          const tempX = zx * zx - zy * zy + juliaX;
+          zy = 2 * zx * zy + juliaY;
+          zx = tempX;
+          iteration++;
+        }
+
+        // Convert iteration count to height field
+        const normalizedIterations = iteration / maxIterations;
+
+        // Smooth interpolation for continuous field
+        if (iteration < maxIterations) {
+          const finalMagnitude = Math.sqrt(zx * zx + zy * zy);
+          const smoothed =
+            iteration + 1 - Math.log(Math.log(finalMagnitude)) / Math.log(2);
+          return (smoothed / maxIterations) * amplitude;
+        }
+
+        return normalizedIterations * amplitude;
+      }
+
+      // Voronoi field - distance to nearest seed points creates cellular patterns
+      function voronoiField(x, y, time) {
+        const timeOffset = time * speed * 0.1;
+        const seedSpacing = 6 / waveScale;
+
+        // Generate moving seed points
+        const seeds = [];
+        for (let i = -2; i <= 2; i++) {
+          for (let j = -2; j <= 2; j++) {
+            const seedX =
+              i * seedSpacing + Math.cos(timeOffset + i * 0.7) * 1.5;
+            const seedY =
+              j * seedSpacing + Math.cos(timeOffset * 0.8 + j * 1.1) * 1.5;
+            seeds.push({ x: seedX, y: seedY, id: i * 5 + j });
+          }
+        }
+
+        // Find distances to all seeds
+        let minDist1 = Infinity;
+        let minDist2 = Infinity;
+
+        for (const seed of seeds) {
+          const dist = Math.sqrt(
+            (x - seed.x) * (x - seed.x) + (y - seed.y) * (y - seed.y)
+          );
+          if (dist < minDist1) {
+            minDist2 = minDist1;
+            minDist1 = dist;
+          } else if (dist < minDist2) {
+            minDist2 = dist;
+          }
+        }
+
+        // Create height field based on relative distances
+        const voronoiValue = (minDist2 - minDist1) / seedSpacing;
+
+        // Additional field based on distance to nearest seed
+        const fieldValue = 1 / (1 + minDist1 * minDist1 * 0.02);
+
+        return (voronoiValue * 0.3 + fieldValue * 0.7) * amplitude;
+      }
+
+      // Prime spiral - mathematical properties of prime numbers create field distortions
+      function primeSpiral(x, y, time) {
+        const scale = 0.3 * waveScale;
+        const timeOffset = time * speed * 0.1;
+
+        // Convert to polar-like coordinates
+        const distance = Math.sqrt(x * x + y * y) * scale;
+        const angle = Math.atan2(y, x);
+
+        // Ulam spiral mapping
+        const spiralRadius = distance + timeOffset;
+        const spiralN = Math.floor(
+          (spiralRadius * spiralRadius) / (4 * Math.PI)
+        );
+
+        // Simple primality test (optimized for real-time)
+        function isPrimeish(n) {
+          if (n < 2) return false;
+          if (n === 2 || n === 3) return true;
+          if (n % 2 === 0 || n % 3 === 0) return false;
+
+          // Check only a few divisors for performance
+          for (let i = 5; i * i <= n && i < 20; i += 6) {
+            if (n % i === 0 || n % (i + 2) === 0) return false;
+          }
+          return true;
+        }
+
+        // Create field based on prime density in local area
+        let primeCount = 0;
+        const checkRadius = 5;
+        for (let i = 0; i < checkRadius; i++) {
+          if (isPrimeish(spiralN + i)) primeCount++;
+        }
+
+        const primeDensity = primeCount / checkRadius;
+
+        // Modulate by position and create continuous field
+        const positionMod = ((Math.abs(x) + Math.abs(y)) * scale) % 1;
+        const field = primeDensity * (0.5 + 0.5 * positionMod);
+
+        return field * amplitude;
+      }
+
+      // Crystal lattice - mathematical lattice structures create geometric field distortions
+      function crystalLattice(x, y, time) {
+        const scale = 0.2 * waveScale;
+        const timeOffset = time * speed * 0.05;
+
+        // Hexagonal lattice basis vectors
+        const a1x = 1;
+        const a1y = 0;
+        const a2x = 0.5;
+        const a2y = Math.sqrt(3) / 2;
+
+        // Transform coordinates to lattice space
+        const latticeX = x * scale + timeOffset;
+        const latticeY = y * scale + timeOffset * 0.7;
+
+        // Find lattice coordinates
+        const u = (latticeX * a2y - latticeY * a2x) / (a1x * a2y - a1y * a2x);
+        const v = (latticeY * a1x - latticeX * a1y) / (a1x * a2y - a1y * a2x);
+
+        // Quantize to lattice points
+        const latticeU = Math.round(u);
+        const latticeV = Math.round(v);
+
+        // Distance to nearest lattice point
+        const nearestX = latticeU * a1x + latticeV * a2x;
+        const nearestY = latticeU * a1y + latticeV * a2y;
+        const distToLattice = Math.sqrt(
+          (latticeX - nearestX) * (latticeX - nearestX) +
+            (latticeY - nearestY) * (latticeY - nearestY)
+        );
+
+        // Create field based on lattice structure
+        const latticeField = Math.exp(-distToLattice * distToLattice * 8);
+
+        // Miller indices pattern (crystallographic planes)
+        const h = 2;
+        const k = 1;
+        const l = 1;
+        const planeSpacing = 2 / Math.sqrt(h * h + k * k + l * l);
+        const planePhase =
+          (latticeX * h + latticeY * k + timeOffset * l) / planeSpacing;
+        const planeField = Math.abs((planePhase % 1) - 0.5) * 2; // Sawtooth wave
+
+        // Combine lattice and plane effects
+        return (latticeField * 0.7 + planeField * 0.3) * amplitude;
+      }
+
+      // Spherical projection - transforms flat plane into spherical surface
+      function sphericalProjection(x, y, time) {
+        const radius = 8 / waveScale;
+        const timeOffset = time * speed * 0.1;
+
+        // Distance from center
+        const r = Math.sqrt(x * x + y * y);
+
+        // Spherical projection: z = sqrt(R² - r²) for r < R, otherwise fade out
+        let sphereHeight = 0;
+        if (r < radius) {
+          sphereHeight = Math.sqrt(radius * radius - r * r);
+        } else {
+          // Smooth falloff outside sphere
+          const falloff = Math.max(0, 1 - (r - radius) / 2);
+          sphereHeight = falloff * falloff;
+        }
+
+        // Add time-based perturbations using non-trigonometric functions
+        const timeModulation = (timeOffset % 2) / 2; // Linear ramp 0 to 1
+        const smoothTime =
+          timeModulation * timeModulation * (3 - 2 * timeModulation); // Smoothstep
+
+        // Latitude/longitude-like perturbations
+        const latitude = Math.acos(Math.min(1, r / radius));
+        const longitude = Math.atan2(y, x);
+
+        // Perturbation based on spherical harmonics-like functions
+        const perturbation =
+          Math.pow(Math.abs((latitude % 1) - 0.5), 1.5) *
+          Math.pow(Math.abs(((longitude + timeOffset) % 1) - 0.5), 1.5);
+
+        return (
+          (sphereHeight / radius + perturbation * 0.3 * smoothTime) * amplitude
+        );
+      }
+
+      // Paraboloid surface - mathematical paraboloid z = x² + y²
+      function paraboloidSurface(x, y, time) {
+        const scale = 0.15 * waveScale;
+        const timeOffset = time * speed * 0.1;
+
+        // Basic paraboloid equation
+        const scaledX = x * scale;
+        const scaledY = y * scale;
+        const baseHeight = scaledX * scaledX + scaledY * scaledY;
+
+        // Time-based rotation of the paraboloid
+        const rotationAngle = timeOffset * 0.5;
+        const cosTheta = Math.cos(rotationAngle);
+        const sinTheta = Math.sin(rotationAngle);
+
+        const rotatedX = scaledX * cosTheta - scaledY * sinTheta;
+        const rotatedY = scaledX * sinTheta + scaledY * cosTheta;
+
+        // Rotated paraboloid
+        const rotatedHeight = rotatedX * rotatedX + rotatedY * rotatedY;
+
+        // Blend between orientations
+        const blendFactor = (timeOffset % 4) / 4;
+        const smoothBlend = blendFactor * blendFactor * (3 - 2 * blendFactor);
+
+        const finalHeight =
+          baseHeight * (1 - smoothBlend) + rotatedHeight * smoothBlend;
+
+        // Normalize and scale
+        return Math.min(finalHeight * 0.5, 1) * amplitude;
+      }
+
+      // Hyperboloid surface - mathematical hyperboloid z² = x² + y² + 1
+      function hyperboloidSurface(x, y, time) {
+        const scale = 0.2 * waveScale;
+        const timeOffset = time * speed * 0.1;
+
+        // Hyperboloid equation: z = ±sqrt(x² + y² + offset²)
+        const scaledX = x * scale;
+        const scaledY = y * scale;
+        const offset = 1 + Math.cos(timeOffset) * 0.5; // Varying waist size
+
+        // One sheet hyperboloid
+        const rSquared = scaledX * scaledX + scaledY * scaledY;
+        const hyperboloidZ = Math.sqrt(rSquared + offset * offset);
+
+        // Create both positive and negative sheets based on position
+        const sheetSelector = Math.floor((x + y + timeOffset * 2) / 4) % 2;
+        const height =
+          sheetSelector === 0 ? hyperboloidZ : -hyperboloidZ + 2 * offset;
+
+        // Smooth the transition and normalize
+        const smoothHeight = (height - offset) / offset; // Center around 0
+
+        // Apply time-based warping
+        const warpFactor = (timeOffset % 3) / 3;
+        const warpedHeight = smoothHeight * (1 + warpFactor * 0.5);
+
+        return (warpedHeight + 1) * 0.5 * amplitude; // Shift to positive range
+      }
+
+      // Toroidal field - creates torus-like mathematical transformations
+      function toroidalField(x, y, time) {
+        const majorRadius = 6 / waveScale; // Major radius of torus
+        const minorRadius = 3 / waveScale; // Minor radius of torus
+        const timeOffset = time * speed * 0.1;
+
+        // Distance from center (rho in cylindrical coordinates)
+        const rho = Math.sqrt(x * x + y * y);
+
+        // Distance from the major radius ring
+        const distanceFromMajorRadius = Math.abs(rho - majorRadius);
+
+        // Toroidal height calculation
+        let toroidHeight = 0;
+        if (distanceFromMajorRadius < minorRadius) {
+          // Inside the torus minor radius
+          toroidHeight = Math.sqrt(
+            minorRadius * minorRadius -
+              distanceFromMajorRadius * distanceFromMajorRadius
+          );
+        } else {
+          // Outside torus - smooth falloff
+          const falloff = Math.max(
+            0,
+            1 - (distanceFromMajorRadius - minorRadius) / 2
+          );
+          toroidHeight = falloff * falloff * minorRadius;
+        }
+
+        // Add toroidal perturbations
+        const toroidalAngle = Math.atan2(distanceFromMajorRadius, 0); // Poloidal angle
+        const azimuthalAngle = Math.atan2(y, x); // Toroidal angle
+
+        // Time-varying surface perturbations
+        const poloidalPerturbation = Math.pow(
+          Math.abs(((toroidalAngle + timeOffset) % 1) - 0.5),
+          1.2
+        );
+        const azimuthalPerturbation = Math.pow(
+          Math.abs(((azimuthalAngle * 3 + timeOffset * 0.7) % 1) - 0.5),
+          1.5
+        );
+
+        const perturbation =
+          (poloidalPerturbation + azimuthalPerturbation) * 0.3;
+
+        return (toroidHeight / minorRadius + perturbation) * amplitude;
+      }
+
+      // Routing channels - PCB-style routing with dedicated trace corridors and open substrate
+      function routingChannels(x, y, time) {
+        const channelWidth = 1.5 / waveScale;
+        const channelSpacing = 4 / waveScale;
+        const timeOffset = time * speed * 0.1;
+
+        // Quantize to routing grid
+        const gridX = Math.floor(x / channelSpacing);
+        const gridY = Math.floor(y / channelSpacing);
+
+        // Local position within grid cell
+        const localX = x - gridX * channelSpacing;
+        const localY = y - gridY * channelSpacing;
+
+        // Determine if this is a routing channel (horizontal or vertical)
+        const isHorizontalChannel = gridY % 3 === 0;
+        const isVerticalChannel = gridX % 3 === 0;
+
+        let height = 0;
+
+        if (
+          isHorizontalChannel &&
+          Math.abs(localY - channelSpacing / 2) < channelWidth / 2
+        ) {
+          // Horizontal routing trace
+          const traceActivity = (gridX + Math.floor(timeOffset * 2)) % 4;
+          const signal = traceActivity < 2 ? 0.8 : 0.3;
+          height = signal * amplitude;
+
+          // Via placement at intersections
+          if (
+            isVerticalChannel &&
+            Math.abs(localX - channelSpacing / 2) < channelWidth / 4
+          ) {
+            height = amplitude * 1.2; // Via connection
+          }
+        } else if (
+          isVerticalChannel &&
+          Math.abs(localX - channelSpacing / 2) < channelWidth / 2
+        ) {
+          // Vertical routing trace
+          const traceActivity = (gridY + Math.floor(timeOffset * 1.7)) % 4;
+          const signal = traceActivity < 2 ? 0.8 : 0.3;
+          height = signal * amplitude;
+        } else {
+          // Open substrate area
+          height = amplitude * 0.05; // Very low substrate
+        }
+
+        return height;
+      }
+
+      // Memory arrays - systematic bit cell arrays with address decode structures
+      function memoryArrays(x, y, time) {
+        const cellSize = 0.8 / waveScale;
+        const blockSize = 8 * cellSize; // 8x8 memory blocks
+        const timeOffset = time * speed * 0.05;
+
+        // Determine memory block position
+        const blockX = Math.floor(x / blockSize);
+        const blockY = Math.floor(y / blockSize);
+
+        // Local position within memory block
+        const localX = x - blockX * blockSize;
+        const localY = y - blockY * blockSize;
+
+        // Memory cell grid position
+        const cellX = Math.floor(localX / cellSize);
+        const cellY = Math.floor(localY / cellSize);
+
+        let height = 0;
+
+        // Memory array area (8x8 cells)
+        if (cellX < 8 && cellY < 8) {
+          // Bit cell activity based on address
+          const cellAddress = cellY * 8 + cellX;
+          const dataPattern =
+            (blockX * 17 + blockY * 23 + Math.floor(timeOffset * 10)) % 256;
+          const bitValue = (dataPattern >> cellAddress % 8) & 1;
+
+          height = bitValue ? amplitude * 0.7 : amplitude * 0.2;
+
+          // Word lines (horizontal)
+          const wordLinePos = localY % cellSize;
+          if (wordLinePos < cellSize * 0.1) {
+            const wordLineActive =
+              (cellY + Math.floor(timeOffset * 5)) % 8 === 0;
+            height += wordLineActive ? amplitude * 0.3 : 0;
+          }
+
+          // Bit lines (vertical)
+          const bitLinePos = localX % cellSize;
+          if (bitLinePos < cellSize * 0.1) {
+            height += amplitude * 0.2;
+          }
+        } else {
+          // Address decode and control logic area
+          const isDecodeArea = localX > 8 * cellSize || localY > 8 * cellSize;
+          if (isDecodeArea) {
+            const decodeActivity =
+              Math.floor((localX + localY + timeOffset * 3) / 2) % 4;
+            height = decodeActivity === 0 ? amplitude * 0.9 : amplitude * 0.1;
+          } else {
+            // Open spacing between blocks
+            height = amplitude * 0.03;
+          }
+        }
+
+        return height;
+      }
+
+      // Pipeline architecture - data processing stages with clear boundaries and bold movement
+      function pipelineArchitecture(x, y, time) {
+        const stageWidth = 8 / waveScale; // Increased width for bolder patterns
+        const pipelineHeight = 6 / waveScale; // Increased height for more space
+        const separatorWidth = 1.5 / waveScale; // Wider separators for more negative space
+        const timeOffset = time * speed * 0.4; // Faster movement
+
+        // Determine pipeline stage
+        const stage = Math.floor(x / stageWidth);
+        const localX = x - stage * stageWidth;
+
+        // Determine pipeline lane
+        const lane = Math.floor(y / pipelineHeight);
+        const localY = y - lane * pipelineHeight;
+
+        let height = 0;
+
+        // Large negative space areas (stage and lane separators)
+        if (localX < separatorWidth || localX > stageWidth - separatorWidth) {
+          // Vertical stage separators - large open areas
+          height = amplitude * 0.02;
+        } else if (
+          localY < separatorWidth ||
+          localY > pipelineHeight - separatorWidth
+        ) {
+          // Horizontal lane separators - large open areas
+          height = amplitude * 0.02;
+        }
+        // Active processing area with bold movement
+        else {
+          // Multiple data packets moving through pipeline at different speeds
+          const packet1Position = (timeOffset * 3 + lane * 0.5) % 6; // 6 stages total
+          const packet2Position = (timeOffset * 2.3 + lane * 0.7 + 2) % 6; // Offset packet
+          const packet3Position = (timeOffset * 1.8 + lane * 0.3 + 4) % 6; // Third packet
+
+          // Check if any packet is in current stage
+          const packet1Active = Math.abs(stage - packet1Position) < 0.7;
+          const packet2Active = Math.abs(stage - packet2Position) < 0.7;
+          const packet3Active = Math.abs(stage - packet3Position) < 0.7;
+
+          if (packet1Active || packet2Active || packet3Active) {
+            // Processing activity based on stage function and packet type
+            const stageFunction = stage % 5; // 5 different stage types
+            let activityLevel = 0.1;
+
+            // Bold activity patterns based on stage type
+            switch (stageFunction) {
+              case 0: // Instruction Fetch - high activity
+                activityLevel = packet1Active ? 1.0 : packet2Active ? 0.8 : 0.6;
+                break;
+              case 1: // Decode - medium activity with patterns
+                const decodePattern = Math.floor((localX + localY) / 2) % 3;
+                activityLevel = packet1Active ? 0.6 + decodePattern * 0.2 : 0.3;
+                break;
+              case 2: // Execute - maximum activity
+                activityLevel = packet1Active || packet2Active ? 1.2 : 0.2;
+                break;
+              case 3: // Memory Access - pulsing activity
+                const memoryPulse = Math.floor(timeOffset * 8) % 2;
+                activityLevel = packet1Active && memoryPulse ? 1.0 : 0.4;
+                break;
+              case 4: // Writeback - flowing activity
+                const writeFlow = (timeOffset * 4 + localX) % 2;
+                activityLevel = packet1Active ? 0.5 + writeFlow * 0.4 : 0.2;
+                break;
+            }
+
+            // Create wave-like movement within active stages
+            const wavePosition =
+              (timeOffset * 5 + localX * 0.3) %
+              (stageWidth - 2 * separatorWidth);
+            const waveIntensity = Math.max(
+              0,
+              1 - Math.abs(wavePosition - (localX - separatorWidth)) / 2
+            );
+
+            height = amplitude * activityLevel * (0.7 + waveIntensity * 0.3);
+          } else {
+            // Idle pipeline stage - very low activity for contrast
+            const idleNoise =
+              Math.floor((localX + localY + timeOffset * 2) / 3) % 4;
+            height = amplitude * (0.05 + idleNoise * 0.02);
+          }
+
+          // Control signals running along pipeline edges
+          const isControlSignal =
+            localY < separatorWidth * 2 ||
+            localY > pipelineHeight - separatorWidth * 2;
+          if (isControlSignal && !packet1Active) {
+            const controlActivity = Math.floor((stage + timeOffset * 6) % 4);
+            height = amplitude * (controlActivity === 0 ? 0.4 : 0.1);
+          }
+        }
+
+        return height;
+      }
+
+      // Signal processing blocks - DSP-style functional blocks with data flow
+      function signalProcessing(x, y, time) {
+        const blockSize = 5 / waveScale;
+        const dataPathWidth = 2 / waveScale;
+        const timeOffset = time * speed * 0.15;
+
+        // Determine processing block position
+        const blockX = Math.floor(x / blockSize);
+        const blockY = Math.floor(y / blockSize);
+
+        // Local position within block
+        const localX = x - blockX * blockSize;
+        const localY = y - blockY * blockSize;
+
+        let height = 0;
+
+        // Processing block types based on position
+        const blockType = (blockX + blockY * 2) % 4;
+
+        // Data path routing (horizontal and vertical channels)
+        const isHorizontalDataPath =
+          Math.abs(localY - blockSize / 2) < dataPathWidth / 2;
+        const isVerticalDataPath =
+          Math.abs(localX - blockSize / 2) < dataPathWidth / 2;
+
+        if (isHorizontalDataPath || isVerticalDataPath) {
+          // Data flowing through paths
+          const dataFlow = (timeOffset * 3 + blockX * 0.7 + blockY * 1.1) % 2;
+          const flowIntensity = Math.abs(dataFlow - 1); // Triangle wave
+          height = amplitude * (0.4 + flowIntensity * 0.4);
+
+          // Junction points
+          if (isHorizontalDataPath && isVerticalDataPath) {
+            height = amplitude * 0.9; // Data path intersection
+          }
+        } else {
+          // Processing block interior
+          switch (blockType) {
+            case 0: // Multiplier
+              const multPattern = (Math.floor(localX) + Math.floor(localY)) % 3;
+              height = amplitude * (0.2 + multPattern * 0.15);
+              break;
+            case 1: // Adder
+              const addPattern =
+                Math.floor((localX + localY + timeOffset) / 2) % 2;
+              height = amplitude * (addPattern ? 0.6 : 0.3);
+              break;
+            case 2: // Memory buffer
+              const memAddr = Math.floor(localX + localY * 2) % 8;
+              const memData = (Math.floor(timeOffset * 4) + blockX) % 256;
+              const memBit = (memData >> memAddr) & 1;
+              height = amplitude * (memBit ? 0.7 : 0.2);
+              break;
+            case 3: // Control logic
+              const ctrlState = Math.floor(timeOffset + blockX + blockY) % 4;
+              height = amplitude * (0.1 + ctrlState * 0.15);
+              break;
+          }
+        }
+
+        return height;
+      }
+
+      function getDisplacement(x, y, time) {
+        switch (displacementType) {
+          case "perlin":
+            return perlinDisplacement(x, y, time);
+          case "quantizedWave":
+            return quantizedWave(x, y, time);
+          case "quantizedPerlin":
+            return quantizedPerlin(x, y, time);
+          case "radar":
+            return radarPattern(x, y, time);
+          case "grid":
+            return gridPattern(x, y, time);
+          case "frequencyBands":
+            return frequencyBands(x, y, time);
+          case "spiral":
+            return spiralPattern(x, y, time);
+          case "checkerboard":
+            return checkerboardPattern(x, y, time);
+          case "ripples":
+            return multiRipples(x, y, time);
+          case "fractal":
+            return fractalPattern(x, y, time);
+          case "diagonal":
+            return diagonalWaves(x, y, time);
+          case "circuitTraces":
+            return circuitTraces(x, y, time);
+          case "logicGates":
+            return digitalLogic(x, y, time);
+          case "shiftRegisters":
+            return shiftRegisters(x, y, time);
+          case "clockDomains":
+            return clockDomains(x, y, time);
+          case "polynomialGrid":
+            return polynomialGrid(x, y, time);
+          case "distanceFields":
+            return distanceFields(x, y, time);
+          case "smoothModular":
+            return smoothModular(x, y, time);
+          case "exponentialGrid":
+            return exponentialGrid(x, y, time);
+          case "mandelbrot":
+            return mandelbrotField(x, y, time);
+          case "voronoi":
+            return voronoiField(x, y, time);
+          case "primeSpiral":
+            return primeSpiral(x, y, time);
+          case "crystalline":
+            return crystalLattice(x, y, time);
+          case "sphericalProj":
+            return sphericalProjection(x, y, time);
+          case "paraboloid":
+            return paraboloidSurface(x, y, time);
+          case "hyperboloid":
+            return hyperboloidSurface(x, y, time);
+          case "toroidal":
+            return toroidalField(x, y, time);
+          case "routingChannels":
+            return routingChannels(x, y, time);
+          case "memoryArrays":
+            return memoryArrays(x, y, time);
+          case "pipelineArch":
+            return pipelineArchitecture(x, y, time);
+          case "signalProcessing":
+            return signalProcessing(x, y, time);
+          default:
+            return simpleWave(x, y, time);
+        }
+      }
+
+      function createDotMatrix() {
+        if (pointCloud) {
+          scene.remove(pointCloud);
+          geometry.dispose();
+          material.dispose();
+        }
+
+        points = [];
+        const positions = [];
+
+        for (let x = 0; x < gridSize; x++) {
+          for (let y = 0; y < gridSize; y++) {
+            const worldX = (x - gridSize / 2) * spacing;
+            const worldY = (y - gridSize / 2) * spacing;
+            const worldZ = getDisplacement(worldX * 2, worldY * 2, time);
+
+            positions.push(worldX, worldY, worldZ);
+            points.push({ x: worldX, y: worldY });
+          }
+        }
+
+        geometry = new THREE.BufferGeometry();
+        geometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(positions, 3)
+        );
+
+        material = new THREE.PointsMaterial({
+          size: dotSize,
+          map: circleTexture,
+          color: 0xffffff,
+          transparent: false,
+          sizeAttenuation: false, // Keep dots same size regardless of distance
         });
 
-        // Initialize
+        pointCloud = new THREE.Points(geometry, material);
+        scene.add(pointCloud);
+      }
+
+      function updateDotMatrix() {
+        if (!geometry) return;
+
+        const positions = geometry.attributes.position.array;
+
+        for (let i = 0; i < points.length; i++) {
+          const point = points[i];
+          const newZ = getDisplacement(point.x * 2, point.y * 2, time);
+          positions[i * 3 + 2] = newZ;
+        }
+
+        geometry.attributes.position.needsUpdate = true;
+      }
+
+      // Camera setup and controls
+      camera.position.set(0, -10, 8);
+      camera.lookAt(0, 0, 0);
+
+      const controls = new SimpleControls(camera, renderer.domElement);
+
+      // Utility function to create synchronized control pairs
+      function createControlPair(sliderId, numberId, callback) {
+        const slider = document.getElementById(sliderId);
+        const numberInput = document.getElementById(numberId);
+
+        slider.addEventListener("input", (e) => {
+          const value = parseFloat(e.target.value);
+          numberInput.value = value;
+          callback(value);
+        });
+
+        numberInput.addEventListener("input", (e) => {
+          let value = parseFloat(e.target.value);
+          const min = parseFloat(numberInput.min);
+          const max = parseFloat(numberInput.max);
+
+          // Clamp value to valid range
+          if (value < min) value = min;
+          if (value > max) value = max;
+
+          numberInput.value = value;
+          slider.value = value;
+          callback(value);
+        });
+
+        // Handle blur event to ensure valid values
+        numberInput.addEventListener("blur", (e) => {
+          if (isNaN(parseFloat(e.target.value)) || e.target.value === "") {
+            e.target.value = slider.value;
+          }
+        });
+      }
+
+      // Set up all control pairs
+      createControlPair("amplitude", "amplitudeNum", (value) => {
+        amplitude = value;
+      });
+
+      createControlPair("speed", "speedNum", (value) => {
+        speed = value;
+      });
+
+      createControlPair("waveScale", "waveScaleNum", (value) => {
+        waveScale = value;
+      });
+
+      createControlPair("quantSteps", "quantStepsNum", (value) => {
+        quantSteps = value;
+      });
+
+      createControlPair("gridSize", "gridSizeNum", (value) => {
+        gridSize = parseInt(value);
         createDotMatrix();
-        animate();
+      });
+
+      createControlPair("dotSize", "dotSizeNum", (value) => {
+        dotSize = value;
+        if (material) material.size = dotSize;
+      });
+
+      createControlPair("zoom", "zoomNum", (value) => {
+        controls.updateZoom(value);
+      });
+
+      createControlPair("rotationSpeed", "rotationSpeedNum", (value) => {
+        // Rotation speed is used in the animation system
+      });
+
+      // Displacement type selector
+      document
+        .getElementById("displacementType")
+        .addEventListener("change", (e) => {
+          displacementType = e.target.value;
+        });
+
+      // Global rotation functions
+      window.rotateCamera = function (axis, degrees) {
+        controls.animateRotation(axis, degrees);
+      };
+
+      window.resetCamera = function () {
+        controls.resetView();
+      };
+
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+        time += 0.01;
+
+        // Update camera animation
+        controls.updateAnimation();
+
+        updateDotMatrix();
+        renderer.render(scene, camera);
+      }
+
+      // Handle window resize
+      window.addEventListener("resize", () => {
+        const aspect = window.innerWidth / window.innerHeight;
+        const zoom = parseFloat(document.getElementById("zoom").value);
+
+        camera.left = -zoom * aspect;
+        camera.right = zoom * aspect;
+        camera.top = zoom;
+        camera.bottom = -zoom;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // Initialize
+      createDotMatrix();
+      animate();
     </script>
-</body>
+  </body>
 </html>
