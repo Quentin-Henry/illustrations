@@ -1367,19 +1367,27 @@
         return spiral * amplitude;
       }
 
-      // Checkerboard pattern with animated height
-      function checkerboardPattern(x, y, time) {
-        const cellSize = 2 / waveScale;
-        const timeOffset = time * speed;
+     // Shifting checkerboard - camera pans across an infinite checkerboard grid
+     function checkerboardPattern(x, y, time) {
+ const cellSize = 4 / waveScale; // Increased from 2 to 4 for bolder shapes
+ const timeOffset = time * speed;
 
-        const cellX = Math.floor(x / cellSize);
-        const cellY = Math.floor(y / cellSize);
-        const isEven = (cellX + cellY) % 2 === 0;
+ // Shift the grid coordinates over time (panning effect) - sped up
+ const shiftX = timeOffset * 1.5; // Increased from 0.5 to 1.5
+ const shiftY = timeOffset * 1.0; // Increased from 0.3 to 1.0
 
-        const wave = Math.sin(timeOffset * 2);
-        return (isEven ? wave : -wave) * amplitude;
-      }
+ // Apply the shift to coordinates
+ const shiftedX = x + shiftX;
+ const shiftedY = y + shiftY;
 
+ // Calculate checkerboard pattern on shifted coordinates
+ const cellX = Math.floor(shiftedX / cellSize);
+ const cellY = Math.floor(shiftedY / cellSize);
+ const isEven = (cellX + cellY) % 2 === 0;
+
+ // Maintain distinct positive/negative space heights
+ return (isEven ? amplitude * 0.8 : amplitude * 0.2);
+}
       // Multiple ripples from different points
       function multiRipples(x, y, time) {
         const timeOffset = time * speed;
