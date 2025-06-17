@@ -61,9 +61,6 @@
       .logo-icon {
         height: 20px;
         width: auto;
-        /* Placeholder for future logo */
-        /* background: rgba(255, 255, 255, 0.1); */
-        /* border-radius: 4px; */
       }
 
       .logo-text {
@@ -326,6 +323,22 @@
         cursor: not-allowed;
       }
 
+      /* Status indicator for pause/play */
+      .status-indicator {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 4px;
+        text-align: center;
+      }
+
+      .status-indicator.paused {
+        color: #ff6b6b;
+      }
+
+      .status-indicator.playing {
+        color: #51cf66;
+      }
+
       .invis {
         display: none;
       }
@@ -533,32 +546,6 @@
           </div>
         </div>
 
-        <div class="section invis">
-          <div class="section-title">Camera</div>
-
-          <div class="control-item invis">
-            <label class="control-label">Zoom</label>
-            <div class="control-group">
-              <input
-                type="range"
-                id="zoom"
-                min="5"
-                max="25"
-                step="1"
-                value="15"
-              />
-              <input
-                type="number"
-                id="zoomNum"
-                min="5"
-                max="25"
-                step="1"
-                value="15"
-              />
-            </div>
-          </div>
-        </div>
-
         <div class="section">
           <div class="section-title">Auto Rotation</div>
 
@@ -623,6 +610,18 @@
             </div>
           </div>
         </div>
+
+        <div class="section">
+          <div class="section-title">Export & Control</div>
+          <div class="button-grid button-grid-1">
+            <button class="rotation-btn" onclick="exportTransparentSVG()">Export SVG (Transparent)</button>
+          </div>
+          <div class="status-indicator" id="statusIndicator">Playing</div>
+          <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 8px;">
+            Spacebar: Pause/Resume<br>
+            Arrow Keys: Scrub frames
+          </div>
+        </div>
       </div>
 
       <!-- Toggle Button -->
@@ -641,24 +640,191 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
+      // Export system variables
+      let isPaused = false;
+      let animationId;
+
       // Control panel collapse/expand functionality
       const controlsContainer = document.getElementById("controlsContainer");
       const toggleBtn = document.getElementById("toggleBtn");
-      const showControlsBtn = document.getElementById("showControlsBtn");
+      const statusIndicator = document.getElementById("statusIndicator");
 
       function toggleControls() {
         const isCollapsed = controlsContainer.classList.contains("collapsed");
 
         if (isCollapsed) {
           controlsContainer.classList.remove("collapsed");
-          showControlsBtn.classList.remove("visible");
         } else {
           controlsContainer.classList.add("collapsed");
-          showControlsBtn.classList.add("visible");
         }
       }
 
       toggleBtn.addEventListener("click", toggleControls);
+
+      // Export System Functions
+      function initializeKeyboardControls() {
+        document.addEventListener('keydown', (e) => {
+          // Prevent default only for our specific keys
+          if (e.key === ' ' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+          }
+          
+          switch(e.key) {
+            case ' ': // Spacebar - toggle pause
+              togglePause();
+              break;
+              
+            case 'ArrowLeft': // Left arrow - scrub backward
+              if (!isPaused) togglePause(); // Auto-pause when scrubbing
+              scrubFrame(-1);
+              break;
+              
+            case 'ArrowRight': // Right arrow - scrub forward
+              if (!isPaused) togglePause(); // Auto-pause when scrubbing
+              scrubFrame(1);
+              break;
+          }
+        });
+      }
+
+      // Pause/Resume functionality
+      function togglePause() {
+        isPaused = !isPaused;
+        
+        if (!isPaused) {
+          // Resume animation
+          animate();
+        }
+        
+        // Update status indicator
+        updateStatusIndicator();
+        console.log(isPaused ? 'PAUSED' : 'PLAYING');
+      }
+
+      function updateStatusIndicator() {
+        if (isPaused) {
+          statusIndicator.textContent = 'Paused';
+          statusIndicator.className = 'status-indicator paused';
+        } else {
+          statusIndicator.textContent = 'Playing';
+          statusIndicator.className = 'status-indicator playing';
+        }
+      }
+
+      // Scrub through frames
+      function scrubFrame(direction) {
+        const scrubSpeed = 0.02; // Adjust for finer/coarser scrubbing
+        time += direction * scrubSpeed;
+        
+        // Update visualization
+        updateDotMatrix();
+        renderer.render(scene, camera);
+        
+        console.log(`Time: ${time.toFixed(3)}`);
+      }
+
+      // SVG Export with transparent background
+      function exportTransparentSVG() {
+        if (!pointCloud || !geometry) {
+          alert('No visualization to export');
+          return;
+        }
+
+        const positions = geometry.attributes.position.array;
+        const canvas = renderer.domElement;
+        const width = canvas.width;
+        const height = canvas.height;
+        
+        // Get current camera transformation
+        camera.updateMatrixWorld();
+        const mvpMatrix = new THREE.Matrix4().multiplyMatrices(
+          camera.projectionMatrix,
+          camera.matrixWorldInverse
+        );
+
+        // Start SVG with transparent background
+        let svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" 
+     xmlns="http://www.w3.org/2000/svg">
+  
+  <!-- Transparent background - no fill -->
+  <g id="dots">`;
+
+        // Convert 3D points to 2D screen coordinates
+        const tempVector = new THREE.Vector3();
+        const visiblePoints = [];
+        
+        for (let i = 0; i < positions.length; i += 3) {
+          tempVector.set(
+            positions[i],
+            positions[i + 1], 
+            positions[i + 2]
+          );
+          
+          // Transform to screen space
+          tempVector.applyMatrix4(mvpMatrix);
+          
+          // Convert from normalized device coordinates to screen coordinates
+          const screenX = (tempVector.x + 1) * width / 2;
+          const screenY = (-tempVector.y + 1) * height / 2; // Flip Y axis
+          
+          // Only include visible points (within screen bounds and in front of camera)
+          if (tempVector.z < 1 && tempVector.z > -1 && 
+              screenX >= -dotSize && screenX <= width + dotSize && 
+              screenY >= -dotSize && screenY <= height + dotSize) {
+            
+            visiblePoints.push({
+              x: screenX,
+              y: screenY,
+              z: tempVector.z
+            });
+          }
+        }
+
+        // Sort by depth (back to front for proper layering)
+        visiblePoints.sort((a, b) => b.z - a.z);
+
+        // Add circles to SVG
+        visiblePoints.forEach(point => {
+          // Optional: vary opacity/size based on depth for more depth perception
+          const depthFactor = (point.z + 1) / 2; // Normalize -1,1 to 0,1
+          const opacity = 0.3 + depthFactor * 0.7; // Range from 0.3 to 1.0
+          const radius = dotSize / 2;
+          
+          svgContent += `
+    <circle cx="${point.x.toFixed(2)}" 
+            cy="${point.y.toFixed(2)}" 
+            r="${radius.toFixed(1)}" 
+            fill="white" 
+            opacity="${opacity.toFixed(2)}"/>`;
+        });
+
+        svgContent += `
+  </g>
+</svg>`;
+
+        // Generate filename with current parameters
+        const timestamp = new Date().toISOString().slice(0,19).replace(/:/g,'-');
+        const filename = `qnity-${displacementType}-${timestamp}.svg`;
+        
+        // Download the SVG
+        downloadFile(svgContent, filename, 'image/svg+xml');
+        
+        console.log(`Exported: ${filename} (${visiblePoints.length} points)`);
+      }
+
+      // Utility function for file download
+      function downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
 
       // Simple mouse controls for orthographic camera
       class SimpleControls {
@@ -2153,7 +2319,6 @@
 
         return height;
       }
-
       function getDisplacement(x, y, time) {
         switch (displacementType) {
           case "perlin":
@@ -2261,7 +2426,7 @@
           map: circleTexture,
           color: 0xffffff,
           transparent: false,
-          sizeAttenuation: false, // Keep dots same size regardless of distance
+          sizeAttenuation: false,
         });
 
         pointCloud = new THREE.Points(geometry, material);
@@ -2304,7 +2469,6 @@
           const min = parseFloat(numberInput.min);
           const max = parseFloat(numberInput.max);
 
-          // Clamp value to valid range
           if (value < min) value = min;
           if (value > max) value = max;
 
@@ -2313,7 +2477,6 @@
           callback(value);
         });
 
-        // Handle blur event to ensure valid values
         numberInput.addEventListener("blur", (e) => {
           if (isNaN(parseFloat(e.target.value)) || e.target.value === "") {
             e.target.value = slider.value;
@@ -2348,10 +2511,6 @@
         if (material) material.size = dotSize;
       });
 
-      createControlPair("zoom", "zoomNum", (value) => {
-        controls.updateZoom(value);
-      });
-
       createControlPair("rotationSpeed", "rotationSpeedNum", (value) => {
         // Rotation speed is used in the animation system
       });
@@ -2372,22 +2531,27 @@
         controls.resetView();
       };
 
-      // Animation loop
+      // Make export function global
+      window.exportTransparentSVG = exportTransparentSVG;
+
+      // Modified animation loop to handle pausing
       function animate() {
-        requestAnimationFrame(animate);
-        time += 0.01;
-
-        // Update camera animation
-        controls.updateAnimation();
-
-        updateDotMatrix();
-        renderer.render(scene, camera);
+        if (!isPaused) {
+          animationId = requestAnimationFrame(animate);
+          time += 0.01;
+          
+          // Update camera animation
+          controls.updateAnimation();
+          
+          updateDotMatrix();
+          renderer.render(scene, camera);
+        }
       }
 
       // Handle window resize
       window.addEventListener("resize", () => {
         const aspect = window.innerWidth / window.innerHeight;
-        const zoom = parseFloat(document.getElementById("zoom").value);
+        const zoom = 15; // Default zoom
 
         camera.left = -zoom * aspect;
         camera.right = zoom * aspect;
@@ -2398,9 +2562,16 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
 
-      // Initialize
+      // Initialize everything
+      initializeKeyboardControls();
       createDotMatrix();
+      updateStatusIndicator();
       animate();
+
+      console.log('Export system initialized:');
+      console.log('- Spacebar: Pause/Resume');
+      console.log('- Left/Right arrows: Scrub frames');
+      console.log('- Export button: SVG with transparent background');
     </script>
   </body>
 </html>
