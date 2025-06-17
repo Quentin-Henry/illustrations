@@ -479,6 +479,7 @@
               <option value="radar">Radar Circles</option>
               <option value="grid">Grid Pattern</option>
               <option value="frequencyBands">Frequency Bands</option>
+              <option value="dataStreams">Data Streams</option>
               <option value="spiral">Spiral Wave</option>
               <option value="checkerboard">Checkerboard</option>
               <option value="ripples">Multi Ripples</option>
@@ -1112,6 +1113,27 @@
         }
 
         return 0;
+      }
+
+      // Data streams - vertical channels of parallel data processing
+      function dataStreams(x, y, time) {
+        const streamWidth = 3 / waveScale; // Width of each data stream
+        const timeOffset = time * speed;
+        
+        // Which stream are we in (0-7, cycling)
+        const stream = Math.floor(x / streamWidth) % 8;
+        
+        // Each stream processes at different rates
+        const processingFreq = (stream + 1) * 0.3;
+        const streamPhase = stream * 0.5;
+        
+        // Data flow through the stream
+        const dataFlow = Math.sin(y * processingFreq + streamPhase + timeOffset);
+        
+        // Quantize for digital processing appearance
+        const processedData = Math.round(dataFlow * quantSteps) / quantSteps;
+        
+        return processedData * amplitude;
       }
 
       // Spiral wave pattern
@@ -2092,6 +2114,8 @@
             return gridPattern(x, y, time);
           case "frequencyBands":
             return frequencyBands(x, y, time);
+          case "dataStreams":
+            return dataStreams(x, y, time);
           case "spiral":
             return spiralPattern(x, y, time);
           case "checkerboard":
