@@ -481,6 +481,7 @@
               <option value="frequencyBands">Frequency Bands</option>
               <option value="dataStreams">Data Streams</option>
               <option value="circuitDataStreams">Circuit Data Streams</option>
+              <option value="circuitDataStreamsVoid">Circuit Data Streams - Void</option>
               <option value="spiral">Spiral Wave</option>
               <option value="checkerboard">Checkerboard</option>
               <option value="ripples">Multi Ripples</option>
@@ -1114,6 +1115,36 @@
         }
 
         return 0;
+      }
+
+      // Circuit data streams with central void - same as circuit but with black square in center
+      function circuitDataStreamsVoid(x, y, time) {
+        const voidSize = 20 / waveScale; // Much larger central void square
+        
+        // Check if we're in the central void area
+        if (Math.abs(x) < voidSize / 2 && Math.abs(y) < voidSize / 2) {
+          return amplitude * 15; // Very large height to "go off the page"
+        }
+        
+        // Otherwise, same as circuit data streams
+        const streamWidth = 8 / waveScale; // Much wider streams for more spacing
+        const timeOffset = time * speed;
+        
+        // Which stream are we in (0-7, cycling)
+        const stream = Math.floor(x / streamWidth) % 8;
+        
+        // Each stream processes at different rates with larger scale
+        const processingFreq = (stream + 1) * 0.15; // Lower frequency = bigger waves
+        const streamPhase = stream * 0.5;
+        
+        // Data flow through the stream with larger amplitude
+        const dataFlow = Math.sin(y * processingFreq + streamPhase + timeOffset);
+        
+        // Quantize for digital processing appearance
+        const processedData = Math.round(dataFlow * quantSteps) / quantSteps;
+        
+        // Much larger amplitude multiplier to create bigger waves
+        return processedData * amplitude * 2.5;
       }
 
       // Circuit data streams - more circuit-like with extensive negative space
@@ -2141,6 +2172,8 @@
             return dataStreams(x, y, time);
           case "circuitDataStreams":
             return circuitDataStreams(x, y, time);
+          case "circuitDataStreamsVoid":
+            return circuitDataStreamsVoid(x, y, time);
           case "spiral":
             return spiralPattern(x, y, time);
           case "checkerboard":
